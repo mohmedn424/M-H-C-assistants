@@ -1,0 +1,17 @@
+.home-page-wrapper {
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 100px);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2em;
+  h1 {
+    font-size: 3em;
+  }
+  .home-page-cta {
+    width: 100%;
+    max-width: 300px;
+    font-size: larger;
+  }
+}

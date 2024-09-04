@@ -1,0 +1,144 @@
+.new-patient-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  overflow-y: scroll;
+  padding-top: 1em;
+
+  padding-bottom: 120px;
+  .form {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
+    padding: 0 0.7em;
+    .smoker-container {
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1em;
+      transform: scale(1.2);
+    }
+    .ant-form-item {
+      width: 100%;
+      margin: 0;
+      .ant-form-item-control-input-content {
+        div {
+          width: 100%;
+        }
+        .ant-switch-handle {
+          width: 18px;
+        }
+        .ant-radio-group {
+          display: flex;
+          justify-content: center;
+          margin: auto;
+          label {
+            width: 100%;
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+  .ant-input-number-outlined,
+  .ant-picker-outlined,
+  .ant-radio-button-wrapper,
+  .ant-input-outlined,
+  .ant-picker-panel-container {
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  }
+
+  .ant-radio-button-wrapper {
+    &::before {
+      content: unset !important;
+    }
+  }
+  .ant-radio-button-wrapper-checked {
+    background-color: rgb(64, 124, 255) !important;
+  }
+
+  .ant-form-item-label {
+    label {
+      font-size: 1.2em !important;
+      font-weight: bold;
+    }
+  }
+
+  .extra-cta {
+    --size: 15vw;
+    --max: 50px;
+    width: var(--size);
+    height: var(--size);
+    max-width: var(--max);
+    max-height: var(--max);
+    span {
+      span {
+        font-size: 25px !important;
+      }
+    }
+  }
+}
+
+.ant-picker-panel-container {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  border-radius: 1em;
+}
+
+.adm-selector-item {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  border-radius: 8px;
+  font-size: 1.1em;
+  transition: 200ms ease-in-out;
+}
+.adm-selector-item-active {
+  background-color: rgb(64, 124, 255) !important;
+  color: white;
+}
+.new-patient-result-wrapeer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+
+  padding-top: 1em;
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+    width: 95%;
+  }
+  .result-descriptions {
+    width: 100%;
+  }
+  .ctas-container {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 1em;
+    .first-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .ant-btn {
+      flex: 1 !important;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+.login-wrapper {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  h1 {
+    font-size: 3em;
+    text-align: center;
+    font-family: Helvetica, sans-serif;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+
+  .login-container {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    .ant-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .cta {
+      .login-btn {
+        width: 100%;
+      }
+    }
+  }
+}

@@ -1,0 +1,88 @@
+* {
+  font-family: Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  #gradient-canvas {
+    --gradient-color-1: #d1dedc;
+    --gradient-color-2: #b3effd;
+    --gradient-color-3: #02a5bd;
+    --gradient-color-4: #128dbf;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100dvh;
+    width: 100dvw;
+    z-index: -1;
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+}
+
+.main-app-container {
+  height: 100dvh;
+  overflow-y: hidden;
+  background-color: transparent;
+}
+
+.queue-tabs-wrapper,
+.adm-list-item,
+.adm-plain-anchor {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  // border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+.tabs-layout {
+  position: fixed !important;
+  width: 100%;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(30px) !important;
+  -webkit-backdrop-filter: blur(30px) !important;
+  .layout-tab {
+    .adm-tabs-tab {
+      width: 100%;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+  }
+}
+
+.adm-tabs-header {
+  border: none !important;
+  padding-top: 0.5em;
+}
+.adm-floating-panel-header,
+.adm-floating-panel-content {
+  // background: rgba(80, 80, 80, 0.5) !important;
+  // backdrop-filter: blur(10px) !important;
+  // -webkit-backdrop-filter: blur(10px) !important;
+  border: none;
+  background: transparent !important;
+}
+
+.adm-floating-panel {
+  background: rgb(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  z-index: 10;
+}
+
+.adm-list-body {
+  background: transparent !important;
+}
+.adm-list {
+  --active-background-color: none !important;
+  --border-inner: none !important;
+  --border-top: none !important;
+  --border-bottom: none !important;
+}
+.adm-collapse-panel-header {
+  border: none !important;
+}
+
+// .ant-picker-panel-container {
+//   background: rgba(255, 255, 255, 0.7) !important;
+// }

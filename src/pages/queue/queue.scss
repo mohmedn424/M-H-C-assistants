@@ -1,0 +1,143 @@
+.queue-page-wrapper {
+  display: flex;
+  align-items: start;
+  justify-items: center;
+  flex-wrap: wrap;
+  height: calc(100dvh - 90px);
+
+  .column {
+    padding: 0 0 1em 0;
+    height: calc(100dvh - 90px);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    gap: 1em;
+    user-select: none;
+    overflow-y: scroll;
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
+  }
+  .cards-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 1em;
+  }
+
+  .queue-card-wrapper {
+    padding: 1.3em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.3em;
+    margin: 0 1em;
+    border-radius: 16px;
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(5px);
+    direction: rtl;
+    user-select: none;
+    scale: 1 1;
+    animation: hide-card 0.1s ease-in-out;
+    animation-timeline: view();
+    animation-range: contain 75dvh contain 91dvh;
+    scroll-snap-align: end;
+
+    .left {
+      display: flex;
+      flex-direction: column;
+      align-items: start;
+      gap: 1em;
+      h2 {
+        font-size: 2em;
+      }
+      p {
+        span {
+          padding-inline: 1px;
+        }
+      }
+      .ant-tag {
+        border-radius: 16px;
+        padding: 0.2em 1em;
+        text-wrap: wrap;
+        z-index: 0;
+        width: max-content;
+      }
+    }
+    .right {
+      display: flex;
+      // flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-evenly;
+    }
+  }
+  .reverse {
+    flex-direction: row-reverse;
+    .left {
+      align-items: end;
+    }
+    .right {
+      flex-direction: row-reverse;
+    }
+  }
+  .header-card {
+    position: sticky;
+    top: 0px;
+    margin-top: 1em;
+
+    backdrop-filter: blur(20px);
+    border-radius: 10px;
+    z-index: 5;
+    animation-timeline: unset;
+    animation: unset;
+  }
+}
+
+.queue-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: max-content;
+  padding: 0.5em;
+  margin-top: 1.7em;
+  padding-bottom: 80px;
+  .status,
+  .type,
+  .doctor {
+    display: flex;
+    gap: 1em;
+    label {
+      width: 100%;
+      text-align: center;
+    }
+  }
+  .ant-form-item-explain-error {
+    text-align: right;
+  }
+}
+
+.adm-selector-item:nth-child(2n-1):last-of-type {
+  grid-column: 1 / -1;
+}
+
+.queue-tabs-wrapper {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 200;
+  width: 100%;
+  user-select: none;
+  .layout-tab {
+    .adm-tabs-tab {
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+@keyframes hide-card {
+  to {
+    scale: 0 0;
+  }
+}
