@@ -1,20 +1,21 @@
 import { useBookings } from '../stores/queueStore';
 import BookingsCard from './BookingsCard';
 import QueueCard from './QueueCard';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Bookings() {
-  const [parent] = useAutoAnimate();
   const { bookings } = useBookings();
 
   return (
     <div className="column">
       <BookingsCard />
-      <div className="cards-wrapper" ref={parent}>
-        {bookings.map((item) => (
-          <QueueCard key={item.id} data={item} />
-        ))}
-      </div>
+      <motion.div layoutId="lol" className="cards-wrapper">
+        <AnimatePresence>
+          {bookings.map((item) => (
+            <QueueCard key={item.id} data={item} />
+          ))}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

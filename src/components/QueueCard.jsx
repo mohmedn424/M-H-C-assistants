@@ -3,17 +3,18 @@ import {
   ArrowRightOutlined,
   CloseOutlined,
 } from '@ant-design/icons';
-import { Link } from '@tanstack/react-router';
 import { Button, Popconfirm, Tag } from 'antd';
 import pb from '../lib/pocketbase';
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function QueueCard({ data }) {
   const [loading, setLoading] = useState(false);
 
   if (data)
     return (
-      <div
+      <motion.div
+        layoutId={data.id}
         className={
           data.status === 'booking'
             ? 'queue-card-wrapper'
@@ -112,6 +113,6 @@ export default function QueueCard({ data }) {
             }
           />
         </div>
-      </div>
+      </motion.div>
     );
 }

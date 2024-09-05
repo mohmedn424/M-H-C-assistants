@@ -79,7 +79,16 @@ export default function AddToQueue() {
       >
         <PatientSearch isQueue={true} />
 
-        <Form.Item noStyle name="status">
+        <Form.Item
+          noStyle
+          name="status"
+          rules={[
+            {
+              required: true,
+              message: 'لازم تختار المريض الاول',
+            },
+          ]}
+        >
           <Radio.Group
             className="status"
             optionType="button"
@@ -92,7 +101,16 @@ export default function AddToQueue() {
         </Form.Item>
         <Divider />
 
-        <Form.Item noStyle name="type">
+        <Form.Item
+          noStyle
+          name="type"
+          rules={[
+            {
+              required: true,
+              message: 'لازم تختار المريض الاول',
+            },
+          ]}
+        >
           <Radio.Group
             className="type"
             optionType="button"

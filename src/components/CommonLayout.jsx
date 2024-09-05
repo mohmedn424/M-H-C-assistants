@@ -9,7 +9,7 @@ import {
   useCurrentRoute,
   useFloatingPanelState,
 } from '../stores/userStore';
-const anchors = [90, window.innerHeight * 0.9];
+const anchors = [90, window.innerHeight * 0.8];
 
 export default function CommonLayout({ children }) {
   const floatingRef = useRef(null);

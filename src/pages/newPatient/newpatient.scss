@@ -46,16 +46,16 @@
       }
     }
   }
-  .ant-input-number-outlined,
-  .ant-picker-outlined,
-  .ant-radio-button-wrapper,
-  .ant-input-outlined,
-  .ant-picker-panel-container {
-    background: rgba(255, 255, 255, 0.5) !important;
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.35) !important;
-  }
+  // .ant-input-number-outlined,
+  // .ant-picker-outlined,
+  // .ant-radio-button-wrapper,
+  // .ant-input-outlined,
+  // .ant-picker-panel-container {
+  //   background: rgba(255, 255, 255, 0.5) !important;
+  //   backdrop-filter: blur(4px) !important;
+  //   -webkit-backdrop-filter: blur(4px) !important;
+  //   border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  // }
 
   .ant-radio-button-wrapper {
     &::before {
@@ -88,19 +88,17 @@
   }
 }
 
-.ant-picker-panel-container {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
-  border-radius: 1em;
-}
+// .ant-picker-panel-container {
+//   background: rgba(255, 255, 255, 0.7) !important;
+//   backdrop-filter: blur(4px) !important;
+//   -webkit-backdrop-filter: blur(4px) !important;
+//   border: 1px solid rgba(255, 255, 255, 0.35) !important;
+//   border-radius: 1em;
+// }
 
 .adm-selector-item {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
   border-radius: 8px;
   font-size: 1.1em;
   transition: 200ms ease-in-out;

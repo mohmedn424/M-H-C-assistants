@@ -12,6 +12,8 @@ import {
 import pb from '../../lib/pocketbase';
 import { useFullQueue, useWaitlist } from '../../stores/queueStore';
 
+import { motion } from 'framer-motion';
+
 export default function QueuePage() {
   const swiperRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(1);
@@ -42,8 +44,9 @@ export default function QueuePage() {
           ))}
         </Tabs>
       )}
-      <div className="queue-page-wrapper">
+      <motion.div layoutId="lol" className="queue-page-wrapper">
         <Swiper
+          slideSize={90}
           direction="horizontal"
           indicator={() => null}
           ref={swiperRef}
@@ -59,7 +62,7 @@ export default function QueuePage() {
             <Bookings />
           </Swiper.Item>
         </Swiper>
-      </div>
+      </motion.div>
     </>
   );
 }

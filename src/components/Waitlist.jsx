@@ -2,11 +2,10 @@ import { useEffect } from 'react';
 import { useWaitlist } from '../stores/queueStore';
 import QueueCard from './QueueCard';
 import WaitListCard from './WaitListCard';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Waitlist() {
   const { waitlist } = useWaitlist();
-  const [parent] = useAutoAnimate();
 
   useEffect(() => {
     const height =
@@ -18,11 +17,13 @@ export default function Waitlist() {
   return (
     <div className="column">
       <WaitListCard />
-      <div className="cards-wrapper" ref={parent}>
-        {waitlist.map((item) => (
-          <QueueCard key={item.id} data={item} />
-        ))}
-      </div>
+      <motion.div layoutId="lol" className="cards-wrapper">
+        <AnimatePresence>
+          {waitlist.map((item) => (
+            <QueueCard key={item.id} data={item} />
+          ))}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }
