@@ -122,48 +122,54 @@ export default function AddToQueue() {
           />
         </Form.Item>
         <Divider />
-        <Form.Item name="doctor" label="الطبيب">
-          <Selector
-            showCheckMark={false}
-            columns={2}
-            options={doctors.map((doctor) => ({
-              label: doctor.name_ar,
-              value: doctor.id,
-            }))}
-            value={[doctorValue]}
-            onChange={(v) => {
-              if (v.length) {
-                form.setFieldValue('doctor', v[0]);
-                setDoctorValues([v[0]]);
-              } else
-                form.setFieldValue(
-                  'doctor',
-                  doctorValue[doctorValue.length - 1]
-                );
-            }}
-          />
-        </Form.Item>
-        <Form.Item name="clinic" label="العيادات">
-          <Selector
-            showCheckMark={false}
-            columns={1}
-            options={clinics.map((doctor) => ({
-              label: doctor.name,
-              value: doctor.id,
-            }))}
-            value={[clinicValue]}
-            onChange={(v) => {
-              if (v.length) {
-                form.setFieldValue('clinic', v[0]);
-                setClinicValues([v[0]]);
-              } else
-                form.setFieldValue(
-                  'clinic',
-                  clinicValue[clinicValue.length - 1]
-                );
-            }}
-          />
-        </Form.Item>
+
+        {doctors.length > 1 && (
+          <Form.Item name="doctor" label="الطبيب">
+            <Selector
+              showCheckMark={false}
+              columns={2}
+              options={doctors.map((doctor) => ({
+                label: doctor.name_ar,
+                value: doctor.id,
+              }))}
+              value={[doctorValue]}
+              onChange={(v) => {
+                if (v.length) {
+                  form.setFieldValue('doctor', v[0]);
+                  setDoctorValues([v[0]]);
+                } else
+                  form.setFieldValue(
+                    'doctor',
+                    doctorValue[doctorValue.length - 1]
+                  );
+              }}
+            />
+          </Form.Item>
+        )}
+
+        {clinics.label > 1 && (
+          <Form.Item name="clinic" label="العيادات">
+            <Selector
+              showCheckMark={false}
+              columns={1}
+              options={clinics.map((doctor) => ({
+                label: doctor.name,
+                value: doctor.id,
+              }))}
+              value={[clinicValue]}
+              onChange={(v) => {
+                if (v.length) {
+                  form.setFieldValue('clinic', v[0]);
+                  setClinicValues([v[0]]);
+                } else
+                  form.setFieldValue(
+                    'clinic',
+                    clinicValue[clinicValue.length - 1]
+                  );
+              }}
+            />
+          </Form.Item>
+        )}
         <Form.Item noStyle name="notes">
           <Input placeholder="ملاحظات" />
         </Form.Item>

@@ -6,10 +6,19 @@ import { Layout } from 'antd';
 import AddToQueueModal from './AddToQueue';
 import { useEffect, useRef } from 'react';
 import {
+  useClinicsStore,
   useCurrentRoute,
   useFloatingPanelState,
 } from '../stores/userStore';
-const anchors = [90, window.innerHeight * 0.8];
+
+const clinics = useClinicsStore.getState().clinics;
+
+export const height =
+  clinics?.length > 1
+    ? window.innerHeight * 0.8
+    : window.innerHeight * 0.65;
+
+const anchors = [90, height];
 
 export default function CommonLayout({ children }) {
   const floatingRef = useRef(null);
@@ -17,7 +26,8 @@ export default function CommonLayout({ children }) {
   const { path, setPath, setFullPath } = useCurrentRoute();
   const router = useRouterState();
 
-  const { setFloatingRef } = useFloatingPanelState();
+  const { closeFloat, isFloatOpen, setIsFloatOpen, setFloatingRef } =
+    useFloatingPanelState();
   const navigate = useNavigate();
   useEffect(() => {
     if (floatingRef.current) {
@@ -41,9 +51,25 @@ export default function CommonLayout({ children }) {
           overflowY: 'auto',
         }}
       >
+        <div
+          onClick={() => closeFloat()}
+          className={
+            isFloatOpen
+              ? 'float-overlay float-overlay-open'
+              : 'float-overlay'
+          }
+        ></div>
         {children}
       </div>
-      <FloatingPanel anchors={anchors} ref={floatingRef}>
+      <FloatingPanel
+        onHeightChange={(e) => {
+          if (e === 90 || e < height / 2) {
+            setIsFloatOpen(false);
+          } else setIsFloatOpen(true);
+        }}
+        anchors={anchors}
+        ref={floatingRef}
+      >
         <AddToQueueModal />
       </FloatingPanel>
       <Tabs

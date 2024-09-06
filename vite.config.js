@@ -18,9 +18,44 @@ export default defineConfig({
 
       manifest: {
         name: 'M-H-C Assistant',
-        short_name: 'M-H-C Assistant',
+        short_name: 'M-H-C',
         description: 'M-H-C Assistant',
         theme_color: '#ffffff',
+        display: 'standalone',
+        categories: [
+          'health',
+          'medical',
+          'productivity',
+          'utilities',
+        ],
+        background_color: '#fff',
+        orientation: 'portrait-primary',
+        icons: [
+          {
+            src: '/pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: '/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: '/pwa-maskable-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+          {
+            src: '/pwa-maskable-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
       },
 
       workbox: {
@@ -30,7 +65,7 @@ export default defineConfig({
       },
 
       devOptions: {
-        enabled: false,
+        enabled: true,
         navigateFallback: 'index.html',
         suppressWarnings: true,
         type: 'module',

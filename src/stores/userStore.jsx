@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import pb from '../lib/pocketbase';
+import { height } from '../components/CommonLayout';
 
 export const useClinicsStore = create((set) => ({
   clinics: pb.authStore.model?.expand.clinics,
@@ -33,13 +34,15 @@ export const useSelectedDoctor = create((set) => ({
 
 export const useFloatingPanelState = create((set) => ({
   floatingRef: null,
+  isFloatOpen: false,
+  setIsFloatOpen: (isFloatOpen) => set({ isFloatOpen }),
   setFloatingRef: (ref) => {
     set({ floatingRef: ref });
   },
   openFloat: () => {
     const floatingRef = useFloatingPanelState.getState().floatingRef;
 
-    if (floatingRef) floatingRef.setHeight(window.innerHeight * 0.9);
+    if (floatingRef) floatingRef.setHeight(height);
   },
   closeFloat: () => {
     const floatingRef = useFloatingPanelState.getState().floatingRef;

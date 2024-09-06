@@ -40,6 +40,7 @@ export default function PatientSearch({ isQueue = false }) {
         size="large"
         placeholder="اسم المريض"
         onSearch={(text) => {
+          setIsOpen(true);
           queryPatient(text);
         }}
         dropdownStyle={{
@@ -72,9 +73,11 @@ export default function PatientSearch({ isQueue = false }) {
               onClick={() => {
                 setIsOpen(false);
                 setTimeout(() => {
-                  navigate({ to: '/newpatient' });
                   closeFloat();
-                }, 300);
+                }, 500);
+                setTimeout(() => {
+                  navigate({ to: '/newpatient' });
+                }, 1000);
               }}
               size="large"
               style={{ width: '100%' }}

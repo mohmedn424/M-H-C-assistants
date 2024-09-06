@@ -13,7 +13,7 @@ export default function QueueCard() {
   const { openFloat } = useFloatingPanelState();
 
   return (
-    <div className="queue-card-wrapper header-card reverse">
+    <div className="queue-card-wrapper header-card">
       <div className="left">
         <h2>قائمة الانتظار</h2>
         <p>
