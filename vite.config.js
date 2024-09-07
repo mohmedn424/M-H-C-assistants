@@ -9,11 +9,13 @@ export default defineConfig({
     TanStackRouterVite(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: false,
+      injectRegister: 'auto',
+      strategies: 'generateSW',
 
       pwaAssets: {
         disabled: false,
         config: true,
+        preset: 'all',
       },
 
       manifest: {

@@ -8,15 +8,17 @@ import { useEffect, useRef } from 'react';
 import {
   useClinicsStore,
   useCurrentRoute,
+  useDoctorsStore,
   useFloatingPanelState,
 } from '../stores/userStore';
 
 const clinics = useClinicsStore.getState().clinics;
+const doctors = useDoctorsStore.getState().doctors;
 
 export const height =
-  clinics?.length > 1
-    ? window.innerHeight * 0.8
-    : window.innerHeight * 0.65;
+  clinics?.length > 1 || doctors?.length > 2
+    ? window.innerHeight * 0.9
+    : window.innerHeight * 0.7;
 
 const anchors = [90, height];
 
