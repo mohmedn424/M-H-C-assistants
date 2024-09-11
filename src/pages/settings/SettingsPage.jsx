@@ -1,8 +1,8 @@
-import './homepage.scss';
+import './settings.scss';
 import pb from '../../lib/pocketbase';
 import { Button } from 'antd';
 
-export default function HomePage() {
+export default function SettingsPage() {
   return (
     <div className="home-page-wrapper">
       <h1>{pb.authStore.model.name}</h1>

@@ -79,27 +79,31 @@ export default function CommonLayout({ children }) {
         activeKey={path}
         onChange={(key) => {
           switch (key) {
-            case 'queue':
-              navigate({ to: '/queue' });
+            case '/':
+              navigate({ to: '/' });
               break;
             case 'newpatient':
               navigate({ to: '/newpatient' });
               break;
-            case '/':
-              navigate({ to: '/' });
+            case 'settings':
+              navigate({ to: '/settings' });
               break;
             default:
               break;
           }
         }}
       >
-        <Tabs.Tab className="layout-tab" title="الدور" key="queue" />
+        <Tabs.Tab className="layout-tab" title="الدور" key="/" />
         <Tabs.Tab
           className="layout-tab"
           title="تسجيل"
           key="newpatient"
         />
-        <Tabs.Tab className="layout-tab" title="الاعدادات" key="/" />
+        <Tabs.Tab
+          className="layout-tab"
+          title="الاعدادات"
+          key="settings"
+        />
       </Tabs>
     </Layout>
   );

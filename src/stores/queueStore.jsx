@@ -104,7 +104,7 @@ const fetchQueueLogic = async () => {
     sort: '-created',
     expand: 'patient,doctor,doctor,clinic,assistant',
     fields:
-      'id,created,status,type,notes,expand.patient.id,expand.patient.name,expand.doctor.id,expand.doctor.name',
+      'id,name,created,status,type,notes,expand.patient.id,expand.patient.name,expand.doctor.id,expand.doctor.name',
   };
 
   const setFullQueue = useFullQueue.getState().setFullQueue;

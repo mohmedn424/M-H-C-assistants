@@ -33,6 +33,7 @@ export default function BookingCard() {
           shape="circle"
           size="large"
           type="default"
+          className="add-btn"
           icon={<PlusOutlined />}
           onClick={() => {
             setMode('booking');

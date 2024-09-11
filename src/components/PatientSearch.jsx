@@ -20,12 +20,6 @@ export default function PatientSearch({ isQueue = false }) {
         width: '100%',
       }}
       name="patient"
-      rules={[
-        {
-          required: true,
-          message: 'لازم تختار المريض الاول',
-        },
-      ]}
     >
       <Select
         onSelect={(_, e) => {

@@ -31,6 +31,7 @@ export default function QueueCard() {
           size="large"
           type="default"
           icon={<PlusOutlined />}
+          className="add-btn"
           onClick={() => {
             setMode('waitlist');
             openFloat();

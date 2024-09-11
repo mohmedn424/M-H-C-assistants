@@ -52,13 +52,14 @@
         font-size: 1.4em;
       }
       p {
+        display: flex;
         span {
-          padding-inline: 1px;
+          display: flex;
         }
       }
       .ant-tag {
         border-radius: 16px;
-        padding: 0.2em 1em;
+        padding: 2px 4px;
         text-wrap: wrap;
         z-index: 0;
         width: max-content;
@@ -66,7 +67,6 @@
     }
     .right {
       display: flex;
-      // flex-wrap: wrap;
       align-items: center;
       gap: 10px;
       justify-content: space-evenly;
@@ -80,6 +80,9 @@
     .right {
       flex-direction: row-reverse;
     }
+    .ant-tag {
+      margin-inline-end: 0;
+    }
   }
   .header-card {
     position: sticky;
@@ -87,11 +90,17 @@
     margin-top: 1em;
     background-color: rgba(255, 255, 255, 0.2);
 
+    font-size: 1.2em;
     backdrop-filter: blur(20px);
     border-radius: 10px;
     z-index: 5;
     animation-timeline: unset;
     animation: unset;
+    position: relative;
+    .add-btn {
+      position: absolute;
+      left: 10px;
+    }
   }
 }
 

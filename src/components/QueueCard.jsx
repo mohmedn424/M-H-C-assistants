@@ -10,6 +10,8 @@ import { motion } from 'framer-motion';
 import { Dialog } from 'antd-mobile';
 
 export default function QueueCard({ data }) {
+  console.log(data);
+
   const [loading, setLoading] = useState(false);
 
   if (data)
@@ -81,7 +83,7 @@ export default function QueueCard({ data }) {
               shape="circle"
               danger
               size="middle"
-              type="dashed"
+              type="primary"
               // onClick={async () => {
               //   await pb.collection('queue').delete(data.id);
               // }}
@@ -145,14 +147,18 @@ export default function QueueCard({ data }) {
               onClick={async () => {
                 setLoading(true);
 
-                const record = await pb
-                  .collection('queue')
-                  .update(data.id, {
+                const record = await pb.collection('queue').update(
+                  data.id,
+                  {
                     status:
                       data.status === 'waitlist'
                         ? 'booking'
                         : 'waitlist',
-                  });
+                  },
+                  {
+                    fields: 'id,name,status,patient',
+                  }
+                );
 
                 if (record) setLoading(false);
               }}

@@ -47,7 +47,7 @@ export default function AddToQueue() {
     try {
       const record = await pb.collection('queue').create(data);
       if (record) {
-        messageApi.success('Patient added successfully');
+        messageApi.success('تمت اضافة المريض بنجاح');
 
         form.setFieldsValue('patient', null);
       }

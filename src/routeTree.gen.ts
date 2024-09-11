@@ -12,7 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as QueueIndexImport } from './routes/queue/index'
+import { Route as SettingsIndexImport } from './routes/settings/index'
 import { Route as NewpatientIndexImport } from './routes/newpatient/index'
 import { Route as NewpatientResultIdImport } from './routes/newpatient/result/$id'
 
@@ -23,8 +23,8 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const QueueIndexRoute = QueueIndexImport.update({
-  path: '/queue/',
+const SettingsIndexRoute = SettingsIndexImport.update({
+  path: '/settings/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -56,11 +56,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewpatientIndexImport
       parentRoute: typeof rootRoute
     }
-    '/queue/': {
-      id: '/queue/'
-      path: '/queue'
-      fullPath: '/queue'
-      preLoaderRoute: typeof QueueIndexImport
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsIndexImport
       parentRoute: typeof rootRoute
     }
     '/newpatient/result/$id': {
@@ -78,7 +78,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   IndexRoute,
   NewpatientIndexRoute,
-  QueueIndexRoute,
+  SettingsIndexRoute,
   NewpatientResultIdRoute,
 })
 
@@ -92,7 +92,7 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/",
         "/newpatient/",
-        "/queue/",
+        "/settings/",
         "/newpatient/result/$id"
       ]
     },
@@ -102,8 +102,8 @@ export const routeTree = rootRoute.addChildren({
     "/newpatient/": {
       "filePath": "newpatient/index.jsx"
     },
-    "/queue/": {
-      "filePath": "queue/index.jsx"
+    "/settings/": {
+      "filePath": "settings/index.jsx"
     },
     "/newpatient/result/$id": {
       "filePath": "newpatient/result/$id.jsx"
