@@ -4,12 +4,35 @@ import pb from '../../lib/pocketbase';
 import { useNavigate } from '@tanstack/react-router';
 import dayjs from 'dayjs';
 import { Helmet } from 'react-helmet';
-import { CheckCircleFilled } from '@ant-design/icons';
+import { useFloatingPanelState } from '../../stores/userStore';
+import { useToAddPatient } from '../../stores/patientStore';
 
 export default function ResultPage({ id }) {
   const navigate = useNavigate();
 
   const [data, setData] = useState({});
+
+  const { openFloat } = useFloatingPanelState();
+  const { setToAddPatient } = useToAddPatient();
+
+  const addToQueueHandler = () => {
+    // key: '5sxh0leuemvbq74';
+    // label: 'محمد نبيل رفاعي احمد | نامول - طوخ - القليوبية';
+    // title: undefined;
+    // value: 'محمد نبيل رفاعي احمد';
+
+    console.log();
+
+    setToAddPatient([
+      {
+        label: `${data.name} | ${data.address}`,
+        key: id,
+        title: undefined,
+        value: data.name,
+      },
+    ]);
+    openFloat();
+  };
 
   useEffect(() => {
     async function fetch() {
@@ -27,7 +50,7 @@ export default function ResultPage({ id }) {
       </Helmet>
 
       <div className="container">
-        <h1>تم تسجيل المريض بنجاح</h1>
+        <h1 style={{ color: 'white' }}>تم تسجيل المريض بنجاح</h1>
         <Descriptions
           className="result-descriptions"
           bordered
@@ -93,21 +116,25 @@ export default function ResultPage({ id }) {
         />
         <div className="ctas-container">
           <div className="first-row">
-            <Button onClick={() => navigate({ to: '/' })} type="link">
+            <Button
+              onClick={() => navigate({ to: '/' })}
+              type="default"
+              size="large"
+            >
               الصفحة الرئيسية
             </Button>
 
             <Button
               onClick={() => navigate({ to: '/newpatient' })}
-              type="dashed"
+              type="default"
+              size="large"
             >
               اضافة مريض جديد
             </Button>
           </div>
           <Button
             size="large"
-            // To be...
-            // onClick={() => console.log('add to queue')}
+            onClick={() => addToQueueHandler()}
             type="primary"
           >
             اضافة المريض الى الدور

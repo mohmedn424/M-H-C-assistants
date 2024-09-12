@@ -6,8 +6,9 @@ import {
 } from '../stores/queueStore';
 import QueueCount from './QueueCount';
 import { useFloatingPanelState } from '../stores/userStore';
+import { memo } from 'react';
 
-export default function BookingCard() {
+export default memo(function BookingCard() {
   const { setMode } = useQueueModalState();
   const { openFloat } = useFloatingPanelState();
 
@@ -43,4 +44,4 @@ export default function BookingCard() {
       </div>
     </div>
   );
-}
+});

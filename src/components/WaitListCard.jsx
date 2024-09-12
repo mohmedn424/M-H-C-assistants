@@ -6,8 +6,9 @@ import {
 } from '../stores/queueStore';
 import QueueCount from './QueueCount';
 import { useFloatingPanelState } from '../stores/userStore';
+import { memo } from 'react';
 
-export default function QueueCard() {
+export default memo(function QueueCard() {
   const { waitlist } = useWaitlist();
   const { setMode } = useQueueModalState();
   const { openFloat } = useFloatingPanelState();
@@ -40,4 +41,4 @@ export default function QueueCard() {
       </div>
     </div>
   );
-}
+});

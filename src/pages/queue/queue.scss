@@ -6,17 +6,15 @@
   height: calc(100dvh - 90px);
 
   .column {
-    padding: 0 0 1em 0;
-    height: calc(100dvh - 90px);
+    padding: 1em 0 1em 0;
+    height: calc(100dvh - 220px);
     width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: start;
     gap: 1em;
     user-select: none;
-    overflow-y: scroll;
-    scroll-snap-type: y proximity;
-    scroll-behavior: smooth;
+    overflow-y: auto;
   }
   .cards-wrapper {
     width: 100%;
@@ -40,8 +38,7 @@
     scale: 1 1;
     animation: hide-card 0.1s ease-in-out;
     animation-timeline: view();
-    animation-range: contain 75dvh contain 91dvh;
-    scroll-snap-align: end;
+    animation-range: contain 60dvh contain calc(100dvh - 100px);
 
     .left {
       display: flex;
@@ -72,6 +69,10 @@
       justify-content: space-evenly;
     }
   }
+
+  .queue-card-wrapper:has(.card-with-name-only) {
+    background-color: rgba(255, 125, 125, 0.5);
+  }
   .reverse {
     flex-direction: row-reverse;
     .left {
@@ -85,13 +86,13 @@
     }
   }
   .header-card {
-    position: sticky;
-    top: 0px;
+    // position: sticky;
+    // top: 0;
     margin-top: 1em;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.05);
 
+    backdrop-filter: blur(50px);
     font-size: 1.2em;
-    backdrop-filter: blur(20px);
     border-radius: 10px;
     z-index: 5;
     animation-timeline: unset;

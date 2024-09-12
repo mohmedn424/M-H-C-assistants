@@ -1,11 +1,19 @@
 import { Button, Form, Select } from 'antd';
-import { usePatientQuery } from '../stores/patientStore';
+import {
+  usePatientQuery,
+  useToAddPatient,
+} from '../stores/patientStore';
 import { useNavigate } from '@tanstack/react-router';
 import { useFloatingPanelState } from '../stores/userStore';
 import { useState } from 'react';
 
-export default function PatientSearch({ isQueue = false }) {
+export default function PatientSearch({
+  set = null,
+  isModal = false,
+}) {
   const navigate = useNavigate();
+  const { toAddPatient } = useToAddPatient();
+
   const queryPatient = usePatientQuery((state) => state.queryPatient);
   const queryResultOptions = usePatientQuery(
     (state) => state.queryResultOptions
@@ -20,17 +28,19 @@ export default function PatientSearch({ isQueue = false }) {
         width: '100%',
       }}
       name="patient"
+      rules={[
+        {
+          required: true,
+          message: 'لازم تكتب اسم المريض',
+        },
+      ]}
     >
       <Select
-        onSelect={(_, e) => {
+        onSelect={() => {
           setIsOpen(false);
-          if (!isQueue)
-            navigate({
-              to: '/prescription/new/$id',
-              params: { id: e.key },
-            });
         }}
         showSearch
+        autoClearSearchValue
         size="large"
         placeholder="اسم المريض"
         onSearch={(text) => {
@@ -39,6 +49,9 @@ export default function PatientSearch({ isQueue = false }) {
         }}
         dropdownStyle={{
           direction: 'rtl',
+        }}
+        onChange={(e) => {
+          isModal && set(e.key);
         }}
         options={queryResultOptions}
         allowClear
@@ -51,18 +64,10 @@ export default function PatientSearch({ isQueue = false }) {
         }}
         open={isOpen}
         labelInValue
+        mode={isModal ? null : 'tags'}
+        maxCount={isModal ? null : 1}
         notFoundContent={
           <>
-            <h3
-              style={{
-                textAlign: 'center',
-
-                color: 'white',
-              }}
-            >
-              المريض غير مسجل على قاعدة البيانات
-            </h3>
-            <br />
             <Button
               onClick={() => {
                 setIsOpen(false);

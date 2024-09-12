@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import pb from '../lib/pocketbase';
-import { height } from '../components/CommonLayout';
+import { height } from '../components/Floating';
 
 export const useClinicsStore = create((set) => ({
   clinics: pb.authStore.model?.expand.clinics,

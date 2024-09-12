@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { useWaitlist } from '../stores/queueStore';
 import QueueCard from './QueueCard';
 import WaitListCard from './WaitListCard';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export default function Waitlist() {
+export default memo(function Waitlist() {
   const { waitlist } = useWaitlist();
 
   useEffect(() => {
@@ -15,15 +15,17 @@ export default function Waitlist() {
   }, [waitlist]);
 
   return (
-    <div className="column">
+    <>
       <WaitListCard />
-      <motion.div layoutId="lol" className="cards-wrapper">
-        <AnimatePresence>
-          {waitlist.map((item) => (
-            <QueueCard key={item.id} data={item} />
-          ))}
-        </AnimatePresence>
-      </motion.div>
-    </div>
+      <div className="column">
+        <motion.div layoutId="lol" className="cards-wrapper">
+          <AnimatePresence>
+            {waitlist.map((item) => (
+              <QueueCard key={item.id} data={item} />
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    </>
   );
-}
+});

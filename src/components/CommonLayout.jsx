@@ -1,41 +1,20 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Tabs } from 'antd-mobile';
 
-import { FloatingPanel } from 'antd-mobile';
 import { Layout } from 'antd';
-import AddToQueueModal from './AddToQueue';
-import { useEffect, useRef } from 'react';
+import { memo, useEffect } from 'react';
 import {
-  useClinicsStore,
   useCurrentRoute,
-  useDoctorsStore,
   useFloatingPanelState,
 } from '../stores/userStore';
+import Floating from './Floating';
 
-const clinics = useClinicsStore.getState().clinics;
-const doctors = useDoctorsStore.getState().doctors;
-
-export const height =
-  clinics?.length > 1 || doctors?.length > 2
-    ? window.innerHeight * 0.9
-    : window.innerHeight * 0.7;
-
-const anchors = [90, height];
-
-export default function CommonLayout({ children }) {
-  const floatingRef = useRef(null);
-
+export default memo(function CommonLayout({ children }) {
   const { path, setPath, setFullPath } = useCurrentRoute();
   const router = useRouterState();
 
-  const { closeFloat, isFloatOpen, setIsFloatOpen, setFloatingRef } =
-    useFloatingPanelState();
+  const { closeFloat, isFloatOpen } = useFloatingPanelState();
   const navigate = useNavigate();
-  useEffect(() => {
-    if (floatingRef.current) {
-      setFloatingRef(floatingRef.current);
-    }
-  }, []);
 
   useEffect(() => {
     router.location.pathname.split('/')[1] === ''
@@ -63,20 +42,14 @@ export default function CommonLayout({ children }) {
         ></div>
         {children}
       </div>
-      <FloatingPanel
-        onHeightChange={(e) => {
-          if (e === 90 || e < height / 2) {
-            setIsFloatOpen(false);
-          } else setIsFloatOpen(true);
-        }}
-        anchors={anchors}
-        ref={floatingRef}
-      >
-        <AddToQueueModal />
-      </FloatingPanel>
+
+      <Floating />
       <Tabs
         className="tabs-layout"
         activeKey={path}
+        style={{
+          userSelect: 'none',
+        }}
         onChange={(key) => {
           switch (key) {
             case '/':
@@ -107,4 +80,4 @@ export default function CommonLayout({ children }) {
       </Tabs>
     </Layout>
   );
-}
+});

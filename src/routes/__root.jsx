@@ -8,7 +8,6 @@ import { isAuthenticated } from '../util/isAuthentectied';
 import LoginPage from '../pages/login/LoginPage';
 
 import CommonLayout from '../components/CommonLayout';
-import { useClinicsStore } from '../stores/userStore';
 import pb from '../lib/pocketbase';
 
 const gradient = new Gradient();

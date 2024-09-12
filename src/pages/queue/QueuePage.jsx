@@ -1,6 +1,6 @@
 import './queue.scss';
 
-import { useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 
 import { Tabs, Swiper } from 'antd-mobile';
 import Waitlist from '../../components/Waitlist';
@@ -14,7 +14,7 @@ import { useFullQueue, useWaitlist } from '../../stores/queueStore';
 
 import { motion } from 'framer-motion';
 
-export default function QueuePage() {
+export default memo(function QueuePage() {
   const swiperRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(1);
 
@@ -65,4 +65,4 @@ export default function QueuePage() {
       </motion.div>
     </>
   );
-}
+});

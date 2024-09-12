@@ -6,7 +6,6 @@
   overflow-y: scroll;
   padding-top: 1em;
 
-  padding-bottom: 120px;
   .ant-form-item-label,
   .ant-input-number-group-addon {
     user-select: none;
@@ -119,6 +118,7 @@
   width: 100%;
 
   padding-top: 1em;
+  padding-bottom: 120px;
   .container {
     display: flex;
     flex-direction: column;
@@ -128,6 +128,15 @@
   }
   .result-descriptions {
     width: 100%;
+
+    td {
+      font-size: 1.5em;
+    }
+  }
+  .ant-descriptions-view {
+    background-color: rgba(255, 255, 255, 0.2);
+    user-select: none;
+    backdrop-filter: blur(20px);
   }
   .ctas-container {
     display: flex;
@@ -139,9 +148,23 @@
       display: flex;
       justify-content: space-between;
       width: 100%;
+      gap: 1em;
     }
     .ant-btn {
       flex: 1 !important;
+    }
+  }
+}
+
+.select-type {
+  margin-top: 2em;
+  .ant-radio-group {
+    display: flex;
+    gap: 1em;
+
+    label {
+      width: 100%;
+      text-align: center;
     }
   }
 }

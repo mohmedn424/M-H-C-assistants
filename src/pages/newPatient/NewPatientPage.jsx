@@ -14,8 +14,14 @@ import dayjs from 'dayjs';
 import { PhoneFilled, UserAddOutlined } from '@ant-design/icons';
 import pb from '../../lib/pocketbase';
 import { useNavigate } from '@tanstack/react-router';
+import { useNewPatientModal } from '../../stores/patientStore';
 
-export default function NewpatientPage() {
+export default function NewpatientPage({
+  isModal = false,
+  reservationData = null,
+}) {
+  const { setIsModalOpen } = useNewPatientModal();
+
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -29,7 +35,19 @@ export default function NewpatientPage() {
     };
     const record = await pb.collection('patients').create(data);
 
-    if (record) {
+    if (record && isModal) {
+      const updatedRecord = await pb
+        .collection('queue')
+        .update(reservationData.id, {
+          name: '',
+          patient: record.id,
+        });
+
+      if (updatedRecord) setIsModalOpen(false);
+      return;
+    }
+
+    if (record && !isModal) {
       navigate({
         params: { id: record.id },
         to: '/newpatient/result/$id',
@@ -76,6 +94,7 @@ export default function NewpatientPage() {
             }
           >
             <Input
+              placeholder={reservationData?.name}
               autoComplete="new-state"
               lang="ar"
               style={{
@@ -210,6 +229,7 @@ export default function NewpatientPage() {
               marginTop: 10,
               fontSize: 20,
               width: '100%',
+              marginBottom: isModal ? null : '120px',
             }}
           >
             تسجيل مريض جديد

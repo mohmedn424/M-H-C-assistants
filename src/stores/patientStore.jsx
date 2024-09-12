@@ -2,8 +2,6 @@ import { create } from 'zustand';
 
 import pb from '../lib/pocketbase';
 
-// const LOCALSTORAGE_TOKEN_DURATION = 86400;
-
 export const usePatientQuery = create((set) => ({
   queryResult: [],
   queryResultOptions: [],
@@ -47,28 +45,19 @@ const fetchLogic = async (searchVal) => {
     sort: '-created',
   });
 
-  // resultList.items.length > 0 &&
-  //   localStorage.setItem(
-  //     searchVal,
-  //     JSON.stringify({
-  //       items: [...resultList.items],
-  //       timeStamp: TimeStampGen(),
-  //     })
-  //   );
-
   setQueryResult(resultList.items);
 };
 
 const fetchPatients = async (searchVal) => {
-  if (localStorage.getItem(searchVal)) {
-    // const local = JSON.parse(localStorage.getItem(searchVal));
-    // const localStamp = local.timeStamp;
-
-    // TimeStampGen() - localStamp > LOCALSTORAGE_TOKEN_DURATION
-    //   ? fetchLogic()
-    //   : setQueryResult(local.items);
-    fetchLogic(searchVal);
-  } else {
-    fetchLogic(searchVal);
-  }
+  fetchLogic(searchVal);
 };
+
+export const useNewPatientModal = create((set) => ({
+  isModalOpen: false,
+  setIsModalOpen: (isModalOpen) => set({ isModalOpen }),
+}));
+
+export const useToAddPatient = create((set) => ({
+  toAddPatient: [],
+  setToAddPatient: (toAddPatient) => set({ toAddPatient }),
+}));

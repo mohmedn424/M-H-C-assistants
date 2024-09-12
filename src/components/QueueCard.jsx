@@ -2,21 +2,25 @@ import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
   CloseOutlined,
+  PlusOutlined,
 } from '@ant-design/icons';
-import { Button, Popconfirm, Tag } from 'antd';
+import { Button, Tag } from 'antd';
 import pb from '../lib/pocketbase';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Dialog } from 'antd-mobile';
+import NewPatientModal from './NewPatientModal';
+import { useNewPatientModal } from '../stores/patientStore';
 
-export default function QueueCard({ data }) {
-  console.log(data);
-
+export default memo(function QueueCard({ data }) {
   const [loading, setLoading] = useState(false);
+
+  const { setIsModalOpen } = useNewPatientModal();
 
   if (data)
     return (
       <>
+        <NewPatientModal data={data} />
         <motion.div
           layoutId={data.id}
           className={
@@ -26,11 +30,17 @@ export default function QueueCard({ data }) {
           }
         >
           <div className="left">
-            <h2>
-              {data.expand.patient.name
-                .split(' ')
-                .splice(0, 3)
-                .join(' ')}
+            <h2
+              className={
+                data.name.length > 0 ? 'card-with-name-only' : ''
+              }
+            >
+              {data.name.length > 0
+                ? data.name.split(' ').splice(0, 3).join(' ')
+                : data.expand?.patient?.name
+                    .split(' ')
+                    .splice(0, 3)
+                    .join(' ')}
             </h2>
             {
               <p>
@@ -45,48 +55,12 @@ export default function QueueCard({ data }) {
             </Tag>
           </div>
           <div className="right">
-            {/* <Popconfirm
-              title={
-                <span
-                  style={{
-                    textAlign: 'center',
-                    fontSize: 18,
-                  }}
-                >
-                  متاكد من حذف المريض
-                </span>
-              }
-              icon={null}
-              placement="left"
-              description={
-                <span
-                  style={{
-                    textAlign: 'center',
-                    fontSize: 16,
-                  }}
-                >
-                  سوف يتم حذف المريض من الدور
-                  <br />
-                  الحذف لا يمكن الرجوع فيه{' '}
-                </span>
-              }
-              onConfirm={async () => {
-                setLoading(true);
-                await pb.collection('queue').delete(data.id);
-                setLoading(false);
-              }}
-              okText="Yes"
-              cancelText="No"
-            > */}
             <Button
               loading={loading}
               shape="circle"
               danger
               size="middle"
               type="primary"
-              // onClick={async () => {
-              //   await pb.collection('queue').delete(data.id);
-              // }}
               icon={<CloseOutlined />}
               onClick={() =>
                 Dialog.show({
@@ -137,41 +111,47 @@ export default function QueueCard({ data }) {
                 })
               }
             />
-            {/* </Popconfirm> */}
 
-            <Button
-              shape="circle"
-              size="large"
-              loading={loading}
-              type="primary"
-              onClick={async () => {
-                setLoading(true);
-
-                const record = await pb.collection('queue').update(
-                  data.id,
-                  {
-                    status:
-                      data.status === 'waitlist'
-                        ? 'booking'
-                        : 'waitlist',
-                  },
-                  {
-                    fields: 'id,name,status,patient',
+            {
+              <Button
+                shape="circle"
+                size="large"
+                loading={loading}
+                type="primary"
+                onClick={async () => {
+                  if (data.name.length > 0) {
+                    setIsModalOpen(true);
+                    return;
                   }
-                );
 
-                if (record) setLoading(false);
-              }}
-              icon={
-                data.status === 'waitlist' ? (
-                  <ArrowRightOutlined />
-                ) : (
-                  <ArrowLeftOutlined />
-                )
-              }
-            />
+                  const record = await pb.collection('queue').update(
+                    data.id,
+                    {
+                      status:
+                        data.status === 'waitlist'
+                          ? 'booking'
+                          : 'waitlist',
+                    },
+                    {
+                      fields: 'id,name,status,patient',
+                    }
+                  );
+                }}
+                icon={
+                  data.name.length == 0 ? (
+                    data.status === 'waitlist' ? (
+                      <ArrowRightOutlined />
+                    ) : (
+                      <ArrowLeftOutlined />
+                    )
+                  ) : (
+                    <PlusOutlined />
+                  )
+                }
+              />
+            }
           </div>
         </motion.div>
       </>
     );
-}
+});

@@ -2,7 +2,7 @@ import { Button, Divider, Form, Input, message, Radio } from 'antd';
 import PatientSearch from './PatientSearch';
 
 import pb from '../lib/pocketbase';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useQueueModalState } from '../stores/queueStore';
 import {
   useClinicsStore,
@@ -11,8 +11,9 @@ import {
   useDoctorValue,
 } from '../stores/userStore';
 import { Selector } from 'antd-mobile';
+import { useToAddPatient } from '../stores/patientStore';
 
-export default function AddToQueue() {
+export default memo(function AddToQueue() {
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -23,12 +24,18 @@ export default function AddToQueue() {
   const { doctorValue, setDoctorValues } = useDoctorValue();
   const { clinicValue, setClinicValues } = useClinicValue();
 
+  const { toAddPatient } = useToAddPatient();
+
   useEffect(() => {
     if (pb.authStore.isValid) {
       setClinics(pb.authStore.model.expand?.clinics);
       setDoctors(pb.authStore.model.expand?.doctors);
     }
   }, []);
+
+  useEffect(() => {
+    form.setFieldValue('patient', toAddPatient);
+  }, [toAddPatient]);
 
   useEffect(() => {
     form.setFieldValue('doctor', doctorValue);
@@ -38,11 +45,17 @@ export default function AddToQueue() {
   const handleAdding = async (e) => {
     const data = {
       ...e,
-      patient: e.patient.key,
       doctor: doctorValue[0],
       clinic: clinicValue[0],
       assistant: pb.authStore.model.id,
+      name: '',
     };
+
+    if (e.patient[0].key === undefined) {
+      data.name = e.patient[0].value;
+      data.status = 'booking';
+    }
+    data.patient = e.patient[0].key;
 
     try {
       const record = await pb.collection('queue').create(data);
@@ -77,15 +90,14 @@ export default function AddToQueue() {
         }}
         dir="rtl"
       >
-        <PatientSearch isQueue={true} />
+        <PatientSearch />
 
         <Form.Item
-          noStyle
           name="status"
           rules={[
             {
               required: true,
-              message: 'لازم تختار المريض الاول',
+              message: 'لازم تختار حجز ولا انتظار',
             },
           ]}
         >
@@ -99,15 +111,13 @@ export default function AddToQueue() {
             ]}
           />
         </Form.Item>
-        <Divider />
 
         <Form.Item
-          noStyle
           name="type"
           rules={[
             {
               required: true,
-              message: 'لازم تختار المريض الاول',
+              message: 'لازم تختار كشف ولا استشارة',
             },
           ]}
         >
@@ -121,7 +131,6 @@ export default function AddToQueue() {
             ]}
           />
         </Form.Item>
-        <Divider />
 
         {doctors.length > 1 && (
           <Form.Item name="doctor" label="الطبيب">
@@ -147,11 +156,11 @@ export default function AddToQueue() {
           </Form.Item>
         )}
 
-        {clinics.label > 1 && (
+        {clinics.length > 1 && (
           <Form.Item name="clinic" label="العيادات">
             <Selector
               showCheckMark={false}
-              columns={1}
+              columns={2}
               options={clinics.map((doctor) => ({
                 label: doctor.name,
                 value: doctor.id,
@@ -180,4 +189,4 @@ export default function AddToQueue() {
       </Form>
     </>
   );
-}
+});
