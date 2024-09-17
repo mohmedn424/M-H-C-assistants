@@ -31,7 +31,7 @@ export default defineConfig({
           'utilities',
         ],
         background_color: '#fff',
-        orientation: 'portrait-primary',
+        orientation: 'any',
         icons: [
           {
             src: '/pwa-192x192.png',
