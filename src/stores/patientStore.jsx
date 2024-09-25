@@ -61,3 +61,14 @@ export const useToAddPatient = create((set) => ({
   toAddPatient: [],
   setToAddPatient: (toAddPatient) => set({ toAddPatient }),
 }));
+
+export const useSelectedPatient = create((set) => ({
+  selectedPatient: [],
+  setSelectedPatient: (selectedPatient) => set({ selectedPatient }),
+}));
+
+export const usePatientRequestedScansData = create((set) => ({
+  patientRequestedScansData: {},
+  setPatientRequestedScansData: (patientRequestedScansData) =>
+    set({ patientRequestedScansData }),
+}));

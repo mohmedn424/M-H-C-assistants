@@ -56,3 +56,8 @@ export const useCurrentRoute = create((set) => ({
   setPath: (newPath) => set({ path: newPath }),
   setFullPath: (newPath) => set({ fullPath: newPath }),
 }));
+
+export const useIdleStatus = create((set) => ({
+  idleStatus: false,
+  setIdleStatus: (idleStatus) => set({ idleStatus }),
+}));

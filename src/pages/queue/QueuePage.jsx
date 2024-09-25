@@ -1,7 +1,5 @@
 import './queue.scss';
-
 import { memo, useRef, useState } from 'react';
-
 import { Tabs, Swiper } from 'antd-mobile';
 import Waitlist from '../../components/Waitlist';
 import Bookings from '../../components/Bookings';
@@ -10,18 +8,42 @@ import {
   useSelectedDoctor,
 } from '../../stores/userStore';
 import pb from '../../lib/pocketbase';
-import { useFullQueue, useWaitlist } from '../../stores/queueStore';
-
+import { useFullQueue } from '../../stores/queueStore';
 import { motion } from 'framer-motion';
 
-export default memo(function QueuePage() {
-  const swiperRef = useRef(null);
+// Custom hook
+function useQueuePage() {
   const [activeIndex, setActiveIndex] = useState(1);
-
   const { setSelectedDoctor } = useSelectedDoctor();
   const { updater } = useFullQueue();
-
   const { doctors } = useDoctorsStore();
+
+  const handleDoctorChange = (doctorId) => {
+    setSelectedDoctor(doctorId);
+    updater();
+  };
+
+  const selectedDoctorId = pb.authStore.model.expand.doctors[0].id;
+
+  return {
+    doctors,
+    activeIndex,
+    setActiveIndex,
+    handleDoctorChange,
+    selectedDoctorId,
+  };
+}
+
+// Component
+const QueuePage = memo(function QueuePage() {
+  const swiperRef = useRef(null);
+  const {
+    doctors,
+    activeIndex,
+    setActiveIndex,
+    handleDoctorChange,
+    selectedDoctorId,
+  } = useQueuePage();
 
   return (
     <>
@@ -29,11 +51,8 @@ export default memo(function QueuePage() {
         <Tabs
           activeLineMode="full"
           className="queue-tabs-wrapper tabs-layout"
-          defaultActiveKey={pb.authStore.model.expand.doctors[0].id}
-          onChange={(e) => {
-            setSelectedDoctor(e);
-            updater();
-          }}
+          defaultActiveKey={selectedDoctorId}
+          onChange={handleDoctorChange}
         >
           {doctors.map((item) => (
             <Tabs.Tab
@@ -51,9 +70,7 @@ export default memo(function QueuePage() {
           indicator={() => null}
           ref={swiperRef}
           defaultIndex={activeIndex}
-          onIndexChange={(index) => {
-            setActiveIndex(index);
-          }}
+          onIndexChange={setActiveIndex}
         >
           <Swiper.Item>
             <Waitlist />
@@ -66,3 +83,5 @@ export default memo(function QueuePage() {
     </>
   );
 });
+
+export default QueuePage;

@@ -1,6 +1,5 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Tabs } from 'antd-mobile';
-
 import { Layout } from 'antd';
 import { memo, useEffect } from 'react';
 import {
@@ -12,33 +11,33 @@ import Floating from './Floating';
 export default memo(function CommonLayout({ children }) {
   const { path, setPath, setFullPath } = useCurrentRoute();
   const router = useRouterState();
-
   const { closeFloat, isFloatOpen } = useFloatingPanelState();
   const navigate = useNavigate();
 
   useEffect(() => {
-    router.location.pathname.split('/')[1] === ''
-      ? setPath(router.location.pathname)
-      : setPath(router.location.pathname.split('/')[1]);
-
+    const pathSegment = router.location.pathname.split('/')[1];
+    setPath(pathSegment === '' ? '/' : pathSegment);
     setFullPath(router.location.pathname);
-  }, [router.location.pathname]);
+  }, [router.location.pathname, setPath, setFullPath]);
+
+  const handleTabChange = (key) => {
+    const routes = {
+      '/': '/',
+      newpatient: '/newpatient',
+      upload: '/upload',
+      settings: '/settings',
+    };
+    if (routes[key]) {
+      navigate({ to: routes[key] });
+    }
+  };
 
   return (
     <Layout className="main-app-container">
-      <div
-        className="container"
-        style={{
-          overflowY: 'auto',
-        }}
-      >
+      <div className="container" style={{ overflowY: 'auto' }}>
         <div
-          onClick={() => closeFloat()}
-          className={
-            isFloatOpen
-              ? 'float-overlay float-overlay-open'
-              : 'float-overlay'
-          }
+          onClick={closeFloat}
+          className={`float-overlay ${isFloatOpen ? 'float-overlay-open' : ''}`}
         ></div>
         {children}
       </div>
@@ -47,24 +46,8 @@ export default memo(function CommonLayout({ children }) {
       <Tabs
         className="tabs-layout"
         activeKey={path}
-        style={{
-          userSelect: 'none',
-        }}
-        onChange={(key) => {
-          switch (key) {
-            case '/':
-              navigate({ to: '/' });
-              break;
-            case 'newpatient':
-              navigate({ to: '/newpatient' });
-              break;
-            case 'settings':
-              navigate({ to: '/settings' });
-              break;
-            default:
-              break;
-          }
-        }}
+        style={{ userSelect: 'none' }}
+        onChange={handleTabChange}
       >
         <Tabs.Tab className="layout-tab" title="الدور" key="/" />
         <Tabs.Tab
@@ -72,6 +55,7 @@ export default memo(function CommonLayout({ children }) {
           title="تسجيل"
           key="newpatient"
         />
+        <Tabs.Tab className="layout-tab" title="صور" key="upload" />
         <Tabs.Tab
           className="layout-tab"
           title="الاعدادات"

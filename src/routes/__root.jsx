@@ -9,6 +9,7 @@ import LoginPage from '../pages/login/LoginPage';
 
 import CommonLayout from '../components/CommonLayout';
 import pb from '../lib/pocketbase';
+import { fetchQueueLogic } from '../stores/queueStore';
 
 const gradient = new Gradient();
 

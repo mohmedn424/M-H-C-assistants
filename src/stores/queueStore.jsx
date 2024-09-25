@@ -99,33 +99,20 @@ export const useFullQueue = create((set) => ({
   },
 }));
 
-const fetchQueueLogic = async () => {
-  const options = {
-    sort: '-created',
-    expand: 'patient,doctor,doctor,clinic,assistant',
-    fields:
-      'id,name,created,status,type,notes,expand.patient.id,expand.patient.name,expand.doctor.id,expand.doctor.name',
-  };
-
+export const queueFetchOptions = {
+  sort: '-created',
+  expand: 'patient,doctor,doctor,clinic,assistant',
+  fields:
+    'id,name,created,status,type,notes,expand.patient.id,expand.patient.name,expand.doctor.id,expand.doctor.name',
+};
+export const fetchQueueLogic = async () => {
   const setFullQueue = useFullQueue.getState().setFullQueue;
-  const deleteHandler = useFullQueue.getState().deleteHandler;
-  const createHandler = useFullQueue.getState().createHandler;
-  const updateHandler = useFullQueue.getState().updateHandler;
 
-  const records = await pb.collection('queue').getFullList(options);
+  const records = await pb
+    .collection('queue')
+    .getFullList(queueFetchOptions);
 
   if (records) setFullQueue(records);
-
-  pb.collection('queue').subscribe(
-    '*',
-    function (e) {
-      if (e.action === 'delete') deleteHandler(e.record.id);
-      if (e.action === 'create') createHandler(e.record);
-
-      if (e.action === 'update') updateHandler(e.record);
-    },
-    options
-  );
 };
 
 pb.authStore.isValid && fetchQueueLogic();

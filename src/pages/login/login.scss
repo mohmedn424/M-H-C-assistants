@@ -1,33 +1,120 @@
 .login-wrapper {
-  height: 100dvh;
+  height: 100dvh; // Changed from min-height to height
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 1.5rem;
+  overflow: hidden;
+  position: relative;
 
-  h1 {
-    font-size: 3em;
-    text-align: center;
-    font-family: Helvetica, sans-serif;
-    font-weight: bold;
-    margin-bottom: 15px;
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.2) 0%,
+      rgba(255, 255, 255, 0) 70%
+    );
+    animation: pulse 15s infinite;
   }
 
   .login-container {
-    width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5em;
+    width: 80%;
+    padding: 2.5rem 2rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transform: translateY(0);
+    transition: all 0.3s ease;
+
+    max-height: calc(
+      100vh - 3rem
+    ); // Subtracting the wrapper's padding
+    overflow-y: auto; // Allow scrolling within the container if needed
+
+    h1 {
+      font-size: 2.5rem;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
     .ant-form {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
+      gap: 1.5rem;
 
-    .cta {
-      .login-btn {
-        width: 100%;
+      .ant-form-item {
+        margin-bottom: 0;
+      }
+
+      .ant-input,
+      .ant-input-password {
+        height: 56px;
+        font-size: 18px;
+        border-radius: 16px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        transition: all 0.3s ease;
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        &:focus {
+          background-color: rgba(255, 255, 255, 0.2);
+          box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        }
+      }
+
+      .ant-input-password {
+        .ant-input {
+          height: auto;
+          border: none;
+          background: transparent;
+          box-shadow: none;
+        }
       }
     }
+
+    .login-btn {
+      height: 56px;
+      font-size: 20px;
+      border-radius: 16px;
+      border: none;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+
+      &:active {
+        transform: translateY(1px);
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
   }
 }

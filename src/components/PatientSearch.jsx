@@ -1,19 +1,16 @@
 import { Button, Form, Select } from 'antd';
 import {
   usePatientQuery,
-  useToAddPatient,
+  useSelectedPatient,
 } from '../stores/patientStore';
 import { useNavigate } from '@tanstack/react-router';
 import { useFloatingPanelState } from '../stores/userStore';
 import { useState } from 'react';
 
-export default function PatientSearch({
-  set = null,
-  isModal = false,
-}) {
+export default function PatientSearch({ isModal = false }) {
   const navigate = useNavigate();
-  const { toAddPatient } = useToAddPatient();
 
+  const { setSelectedPatient } = useSelectedPatient();
   const queryPatient = usePatientQuery((state) => state.queryPatient);
   const queryResultOptions = usePatientQuery(
     (state) => state.queryResultOptions
@@ -51,7 +48,7 @@ export default function PatientSearch({
           direction: 'rtl',
         }}
         onChange={(e) => {
-          isModal && set(e.key);
+          setSelectedPatient(e?.key || []);
         }}
         options={queryResultOptions}
         allowClear

@@ -36,14 +36,21 @@ export default function NewpatientPage({
     const record = await pb.collection('patients').create(data);
 
     if (record && isModal) {
-      const updatedRecord = await pb
-        .collection('queue')
-        .update(reservationData.id, {
-          name: '',
-          patient: record.id,
-        });
+      try {
+        const updatedRecord = await pb
+          .collection('queue')
+          .update(reservationData.id, {
+            name: '',
+            patient: record.id,
+          });
 
-      if (updatedRecord) setIsModalOpen(false);
+        if (updatedRecord) {
+          setIsModalOpen(false);
+          message.success('تم إنشاء المريض الجديد بنجاح');
+        }
+      } catch (error) {
+        message.error('حدث خطأ أثناء إنشاء المريض الجديد');
+      }
       return;
     }
 
@@ -54,10 +61,24 @@ export default function NewpatientPage({
       });
     }
   };
+  function handleInputFocus(event) {
+    // Wait for the keyboard to appear
+    setTimeout(() => {
+      event.target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }, 300);
+  }
 
   return (
     <>
-      <div className="new-patient-container">
+      <div
+        className="new-patient-container"
+        style={{
+          padding: isModal ? null : '1rem',
+        }}
+      >
         <h1>تسجيل مريض جديد</h1>
         <Divider />
         <Form
@@ -94,6 +115,7 @@ export default function NewpatientPage({
             }
           >
             <Input
+              onFocus={handleInputFocus}
               placeholder={reservationData?.name}
               autoComplete="new-state"
               lang="ar"
@@ -124,10 +146,14 @@ export default function NewpatientPage({
             normalize={(e) => e.replace(/\s+/g, ' ')}
             rules={[{ required: true, message: 'يجب ادخال العنوان' }]}
           >
-            <Input autoComplete="new-state" />
+            <Input
+              autoComplete="new-state"
+              onFocus={handleInputFocus}
+            />
           </Form.Item>
           <Form.Item label="تاريخ الميلاد" name="dob">
             <DatePicker
+              onFocus={handleInputFocus}
               format={[
                 'DD-MM-YYYY',
                 'D-M-YYYY',
@@ -155,10 +181,18 @@ export default function NewpatientPage({
           </Form.Item>
 
           <Form.Item label="الوزن" name="weight">
-            <InputNumber controls={false} addonAfter="كيلوجرام" />
+            <InputNumber
+              onFocus={handleInputFocus}
+              controls={false}
+              addonAfter="كيلوجرام"
+            />
           </Form.Item>
           <Form.Item label="الطول" name="height">
-            <InputNumber controls={false} addonAfter="سنتيميتر" />
+            <InputNumber
+              onFocus={handleInputFocus}
+              controls={false}
+              addonAfter="سنتيميتر"
+            />
           </Form.Item>
 
           <Form.Item
@@ -173,6 +207,7 @@ export default function NewpatientPage({
             ]}
           >
             <Input
+              onFocus={handleInputFocus}
               autoComplete="new-state"
               addonAfter={
                 <PhoneFilled
@@ -192,21 +227,25 @@ export default function NewpatientPage({
               },
             ]}
           >
-            <Input />
+            <Input onFocus={handleInputFocus} />
           </Form.Item>
           <Form.Item
             label="الحالة الاجتماعية"
             name="martialStatus"
             labelCol={4}
           >
-            <Radio.Group buttonStyle="solid">
-              <Radio.Button value="single">اعزب</Radio.Button>
-              <Radio.Button value="married">متزوج</Radio.Button>
-              <Radio.Button value="widowed">مطلق - ارمل</Radio.Button>
+            <Radio.Group
+              buttonStyle="solid"
+              onFocus={handleInputFocus}
+            >
+              <Radio.Button value="Single">اعزب</Radio.Button>
+              <Radio.Button value="Married">متزوج</Radio.Button>
+              <Radio.Button value="Divorced">مطلق</Radio.Button>
+              <Radio.Button value="Widowed">ارمل</Radio.Button>
             </Radio.Group>
           </Form.Item>
           <Form.Item label="ملاحظات" name="notes">
-            <Input.TextArea autoSize />
+            <Input.TextArea autoSize onFocus={handleInputFocus} />
           </Form.Item>
           <Form.Item
             noStyle
@@ -217,7 +256,7 @@ export default function NewpatientPage({
           >
             <div className="smoker-container">
               <h2>مدخن</h2>
-              <Switch id="smoker" />
+              <Switch id="smoker" onFocus={handleInputFocus} />
             </div>
           </Form.Item>
 
@@ -238,4 +277,15 @@ export default function NewpatientPage({
       </div>
     </>
   );
+}
+
+function setAppHeight() {
+  const doc = document.documentElement;
+  doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+
+window.addEventListener('resize', setAppHeight);
+setAppHeight();
+if ('visualViewport' in window) {
+  window.visualViewport.addEventListener('resize', setAppHeight);
 }

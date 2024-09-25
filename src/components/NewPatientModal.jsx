@@ -40,7 +40,12 @@ export default memo(function NewPatientModal({ data }) {
             buttonStyle="solid"
             value={status || 'old'}
             defaultValue="old"
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              if (e.target.value === 'new') {
+                setIsModalOpen(false);
+              }
+            }}
             options={[
               { label: 'تسجيل', value: 'new' },
               { label: 'بحث', value: 'old' },

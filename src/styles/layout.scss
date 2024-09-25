@@ -94,3 +94,60 @@
 // .ant-picker-panel-container {
 //   background: rgba(255, 255, 255, 0.7) !important;
 // }
+
+@keyframes float {
+  0% {
+    box-shadow: 0 5px 15px 0px rgba(0, 0, 0, 0.6);
+    transform: translatey(0px);
+  }
+  50% {
+    box-shadow: 0 25px 15px 0px rgba(0, 0, 0, 0.2);
+    transform: translatey(-20px);
+  }
+  100% {
+    box-shadow: 0 5px 15px 0px rgba(0, 0, 0, 0.6);
+    transform: translatey(0px);
+  }
+}
+
+.idle-overlay {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 99999 !important;
+  width: 100dvw;
+  height: 100dvh;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+  opacity: 0;
+  transition: 400ms ease-in-out;
+  display: grid;
+  place-items: center;
+  .container {
+    margin: auto;
+    width: max-content;
+    height: max-content;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
+    img {
+      width: 500px;
+      border-radius: 50%;
+      border: 5px solid white;
+      animation: float 10s ease-in-out infinite;
+    }
+    h1 {
+      color: white;
+      font-family: Helvetica, sans-serif;
+      font-size: 4em;
+    }
+  }
+}
+
+.idle-overlay-on {
+  opacity: 1;
+}

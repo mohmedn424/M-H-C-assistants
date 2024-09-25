@@ -12,14 +12,21 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
+import { Route as UploadIndexImport } from './routes/upload/index'
 import { Route as SettingsIndexImport } from './routes/settings/index'
 import { Route as NewpatientIndexImport } from './routes/newpatient/index'
+import { Route as LoginIndexImport } from './routes/login/index'
 import { Route as NewpatientResultIdImport } from './routes/newpatient/result/$id'
 
 // Create/Update Routes
 
 const IndexRoute = IndexImport.update({
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const UploadIndexRoute = UploadIndexImport.update({
+  path: '/upload/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -30,6 +37,11 @@ const SettingsIndexRoute = SettingsIndexImport.update({
 
 const NewpatientIndexRoute = NewpatientIndexImport.update({
   path: '/newpatient/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LoginIndexRoute = LoginIndexImport.update({
+  path: '/login/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -49,6 +61,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/login/': {
+      id: '/login/'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/newpatient/': {
       id: '/newpatient/'
       path: '/newpatient'
@@ -61,6 +80,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/upload/': {
+      id: '/upload/'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadIndexImport
       parentRoute: typeof rootRoute
     }
     '/newpatient/result/$id': {
@@ -77,8 +103,10 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   IndexRoute,
+  LoginIndexRoute,
   NewpatientIndexRoute,
   SettingsIndexRoute,
+  UploadIndexRoute,
   NewpatientResultIdRoute,
 })
 
@@ -91,19 +119,27 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.jsx",
       "children": [
         "/",
+        "/login/",
         "/newpatient/",
         "/settings/",
+        "/upload/",
         "/newpatient/result/$id"
       ]
     },
     "/": {
       "filePath": "index.jsx"
     },
+    "/login/": {
+      "filePath": "login/index.jsx"
+    },
     "/newpatient/": {
       "filePath": "newpatient/index.jsx"
     },
     "/settings/": {
       "filePath": "settings/index.jsx"
+    },
+    "/upload/": {
+      "filePath": "upload/index.jsx"
     },
     "/newpatient/result/$id": {
       "filePath": "newpatient/result/$id.jsx"

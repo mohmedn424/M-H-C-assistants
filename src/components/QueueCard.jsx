@@ -4,154 +4,177 @@ import {
   CloseOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
-import { Button, Tag } from 'antd';
+import { Button, message, Tag } from 'antd';
 import pb from '../lib/pocketbase';
-import { memo, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Dialog } from 'antd-mobile';
 import NewPatientModal from './NewPatientModal';
 import { useNewPatientModal } from '../stores/patientStore';
+import { Dialog } from 'antd-mobile';
 
-export default memo(function QueueCard({ data }) {
+const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
+const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
+
+const showErrorMessage = () => {
+  message.error({
+    content: (
+      <div style={{ fontWeight: 'bold', textAlign: 'right' }}>
+        <p
+          style={{
+            fontSize: '1em',
+            color: 'red',
+            fontWeight: 'bolder',
+          }}
+        >
+          في حاجة غلط - الطلب لم يتم تنفيذه
+        </p>
+        <p>اتاكد ان من توصيلك للانترنت او اعمل ريفريش</p>
+      </div>
+    ),
+  });
+};
+
+const QueueCard = memo(function QueueCard({ data }) {
+  const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
 
-  const { setIsModalOpen } = useNewPatientModal();
+  const handleDelete = useCallback(async () => {
+    try {
+      setLoading(true);
+      await pb.collection('queue').delete(data.id);
+      Dialog.clear();
+      message.success('تم حذف المريض بنجاح'); // Success message in Arabic
+    } catch (error) {
+      showErrorMessage();
+    } finally {
+      setLoading(false);
+    }
+  }, [data.id]);
 
-  if (data)
-    return (
-      <>
-        <NewPatientModal data={data} />
-        <motion.div
-          layoutId={data.id}
-          className={
-            data.status === 'booking'
-              ? 'queue-card-wrapper'
-              : 'queue-card-wrapper reverse'
-          }
+  const handleStatusChange = useCallback(async () => {
+    try {
+      setLoading(true);
+      await pb.collection('queue').update(
+        data.id,
+        {
+          status:
+            data.status === QUEUE_STATUSES.WAITLIST
+              ? QUEUE_STATUSES.BOOKING
+              : QUEUE_STATUSES.WAITLIST,
+        },
+        { fields: 'none' }
+      );
+    } catch (error) {
+      showErrorMessage();
+    } finally {
+      setLoading(false);
+    }
+  }, [data.id, data.status]);
+
+  const showDeleteConfirmation = () => {
+    Dialog.show({
+      content: (
+        <h4 style={{ textAlign: 'center', direction: 'rtl' }}>
+          اذا تم حذف المريض فلا يمكن ارجاعه لنفس دوره مرة اخرى.
+        </h4>
+      ),
+      header: (
+        <h1
+          style={{
+            textAlign: 'center',
+            direction: 'rtl',
+            color: 'red',
+          }}
         >
-          <div className="left">
-            <h2
-              className={
-                data.name.length > 0 ? 'card-with-name-only' : ''
-              }
-            >
-              {data.name.length > 0
-                ? data.name.split(' ').splice(0, 3).join(' ')
-                : data.expand?.patient?.name
-                    .split(' ')
-                    .splice(0, 3)
-                    .join(' ')}
-            </h2>
-            {
-              <p>
-                {data.notes.length > 0
-                  ? data.notes
-                  : 'لا توجد ملاحظات'}
-              </p>
+          هل انت متاكد من حذف المريض من الدور ؟
+        </h1>
+      ),
+      actions: [
+        [
+          {
+            text: 'نعم',
+            key: 'yes',
+            bold: true,
+            danger: true,
+            onClick: handleDelete,
+          },
+          { text: 'لا', key: 'cancel' },
+        ],
+      ],
+    });
+  };
+
+  const handleActionButtonClick =
+    data.name.length > 0
+      ? () => setIsModalOpen(true)
+      : handleStatusChange;
+
+  const getActionButtonIcon = () => {
+    if (data.name.length === 0) {
+      return data.status === QUEUE_STATUSES.WAITLIST ? (
+        <ArrowRightOutlined />
+      ) : (
+        <ArrowLeftOutlined />
+      );
+    }
+    return <PlusOutlined />;
+  };
+
+  const getName = () => {
+    const nameParts = (
+      data.name.length > 0 ? data.name : data.expand?.patient?.name
+    ).split(' ');
+    return nameParts.slice(0, 3).join(' ');
+  };
+
+  return (
+    <>
+      <NewPatientModal data={data} />
+      <motion.div
+        layoutId={data.id}
+        className={`queue-card-wrapper ${data.status === QUEUE_STATUSES.BOOKING ? '' : 'reverse'}`}
+      >
+        <div className="left">
+          <h2
+            className={
+              data.name.length > 0 ? 'card-with-name-only' : ''
             }
-
-            <Tag color={data.type === 'new' ? 'green' : 'yellow'}>
-              {data.type === 'new' ? 'كشف جديد' : 'استشارة'}{' '}
-            </Tag>
-          </div>
-          <div className="right">
-            <Button
-              loading={loading}
-              shape="circle"
-              danger
-              size="middle"
-              type="primary"
-              icon={<CloseOutlined />}
-              onClick={() =>
-                Dialog.show({
-                  content: (
-                    <h4
-                      style={{
-                        textAlign: 'center',
-                        direction: 'rtl',
-                      }}
-                    >
-                      اذا تم حذف المريض فلا يمكن ارجاعه لنفس دوره مرة
-                      اخرى.
-                    </h4>
-                  ),
-                  destroyOnClose: true,
-                  disableBodyScroll: true,
-                  closeOnMaskClick: true,
-                  closeOnAction: true,
-                  header: (
-                    <h1
-                      style={{
-                        textAlign: 'center',
-                        direction: 'rtl',
-                        color: 'red',
-                      }}
-                    >
-                      هل انت متاكد من حذف المريض من الدور ؟
-                    </h1>
-                  ),
-                  actions: [
-                    [
-                      {
-                        text: 'نعم',
-                        key: 'yes',
-                        bold: true,
-                        danger: true,
-                        onClick: async () => {
-                          setLoading(true);
-                          await pb
-                            .collection('queue')
-                            .delete(data.id);
-                          setLoading(false);
-                        },
-                      },
-                      { text: 'لا', key: 'cancel' },
-                    ],
-                  ],
-                })
-              }
-            />
-
-            {
-              <Button
-                shape="circle"
-                size="large"
-                loading={loading}
-                type="primary"
-                onClick={async () => {
-                  if (data.name.length > 0) {
-                    setIsModalOpen(true);
-                    return;
-                  }
-
-                  const record = await pb.collection('queue').update(
-                    data.id,
-                    {
-                      status:
-                        data.status === 'waitlist'
-                          ? 'booking'
-                          : 'waitlist',
-                    },
-                    {
-                      fields: 'id,name,status,patient',
-                    }
-                  );
-                }}
-                icon={
-                  data.name.length == 0 ? (
-                    data.status === 'waitlist' ? (
-                      <ArrowRightOutlined />
-                    ) : (
-                      <ArrowLeftOutlined />
-                    )
-                  ) : (
-                    <PlusOutlined />
-                  )
-                }
-              />
+          >
+            {getName()}
+          </h2>
+          <p>
+            {data.notes.length > 0 ? data.notes : 'لا توجد ملاحظات'}
+          </p>
+          <Tag
+            color={
+              data.type === PATIENT_TYPES.NEW ? 'green' : 'yellow'
             }
-          </div>
-        </motion.div>
-      </>
-    );
+          >
+            {data.type === PATIENT_TYPES.NEW ? 'كشف جديد' : 'استشارة'}
+          </Tag>
+        </div>
+        <div className="right">
+          <Button
+            loading={loading}
+            shape="circle"
+            danger
+            size="middle"
+            type="primary"
+            icon={<CloseOutlined />}
+            onClick={showDeleteConfirmation}
+          />
+          <Button
+            shape="circle"
+            size="large"
+            loading={loading}
+            type="primary"
+            onClick={handleActionButtonClick}
+            icon={getActionButtonIcon()}
+          />
+        </div>
+      </motion.div>
+    </>
+  );
 });
+
+export default QueueCard;

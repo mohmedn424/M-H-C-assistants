@@ -1,104 +1,124 @@
 .new-patient-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
   width: 100%;
-  overflow-y: scroll;
-  padding-top: 1em;
+  background-color: #ffffff;
 
-  .ant-form-item-label,
-  .ant-input-number-group-addon {
-    user-select: none;
+  h1 {
+    font-size: 1.5rem;
+    color: #1890ff;
+    margin-bottom: 0.5rem;
+    text-align: center;
   }
+
+  .ant-divider {
+    margin: 0.5rem 0 1rem;
+  }
+
   .form {
     width: 100%;
-    max-width: 800px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1em;
-    padding: 0 0.7em;
+
+    .ant-form-item {
+      margin-bottom: 1rem;
+
+      .ant-form-item-label > label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .ant-input,
+      .ant-input-number,
+      .ant-picker,
+      .ant-radio-button-wrapper {
+        border-radius: 4px;
+      }
+
+      .ant-radio-group {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+
+        .ant-radio-button-wrapper {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 40px;
+          line-height: 1;
+          padding: 0;
+        }
+      }
+    }
+
     .smoker-container {
-      margin: 10px 0;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 1em;
-      transform: scale(1.2);
-      user-select: none;
-    }
-    .ant-form-item {
-      width: 100%;
-      margin: 0;
-      .ant-form-item-control-input-content {
-        div {
-          width: 100%;
-        }
-        .ant-switch-handle {
-          width: 18px;
-        }
-        .ant-radio-group {
-          display: flex;
-          justify-content: center;
-          margin: auto;
-          label {
-            width: 100%;
-            text-align: center;
-          }
-        }
+      justify-content: space-between;
+      padding: 0.5rem 0;
+
+      h2 {
+        margin: 0;
+        font-size: 1rem;
+        color: #333;
       }
     }
-  }
-  // .ant-input-number-outlined,
-  // .ant-picker-outlined,
-  // .ant-radio-button-wrapper,
-  // .ant-input-outlined,
-  // .ant-picker-panel-container {
-  //   background: rgba(255, 255, 255, 0.5) !important;
-  //   backdrop-filter: blur(4px) !important;
-  //   -webkit-backdrop-filter: blur(4px) !important;
-  //   border: 1px solid rgba(255, 255, 255, 0.35) !important;
-  // }
 
-  .ant-radio-button-wrapper {
-    &::before {
-      content: unset !important;
-    }
-  }
-  .ant-radio-button-wrapper-checked {
-    background-color: rgb(64, 124, 255) !important;
-  }
-
-  .ant-form-item-label {
-    label {
-      font-size: 1.2em !important;
-      font-weight: bold;
-    }
-  }
-
-  .extra-cta {
-    --size: 15vw;
-    --max: 50px;
-    width: var(--size);
-    height: var(--size);
-    max-width: var(--max);
-    max-height: var(--max);
-    span {
-      span {
-        font-size: 25px !important;
-      }
+    .ant-btn {
+      height: 44px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 4px;
+      margin-top: 1rem;
     }
   }
 }
 
-// .ant-picker-panel-container {
-//   background: rgba(255, 255, 255, 0.7) !important;
-//   backdrop-filter: blur(4px) !important;
-//   -webkit-backdrop-filter: blur(4px) !important;
-//   border: 1px solid rgba(255, 255, 255, 0.35) !important;
-//   border-radius: 1em;
-// }
+// Additional mobile-specific adjustments
+.ant-form-item-control-input-content {
+  .ant-input-number-group-wrapper {
+    width: 100%;
+  }
+
+  .ant-picker {
+    width: 100%;
+  }
+}
+
+.ant-form-item-extra {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.ant-radio-button-wrapper {
+  &::before {
+    content: unset !important;
+  }
+}
+.ant-radio-button-wrapper-checked {
+  background-color: rgb(64, 124, 255) !important;
+}
+
+.ant-form-item-label {
+  label {
+    font-size: 1.2em !important;
+    font-weight: bold;
+  }
+}
+
+.extra-cta {
+  --size: 15vw;
+  --max: 50px;
+  width: var(--size);
+  height: var(--size);
+  max-width: var(--max);
+  max-height: var(--max);
+  span {
+    span {
+      font-size: 25px !important;
+    }
+  }
+}
 
 .adm-selector-item {
   background: rgba(255, 255, 255, 0.2) !important;
