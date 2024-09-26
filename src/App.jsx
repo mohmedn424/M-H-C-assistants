@@ -10,6 +10,9 @@ import { useIdleStatus } from './stores/userStore';
 import pb from './lib/pocketbase';
 import { useEffect } from 'react';
 import IdleOverly from './components/IdleOverly';
+import deleteSound from './assets/notification.mp3';
+import { Helmet } from 'react-helmet';
+const deleteAudio = new Audio(deleteSound);
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -26,33 +29,24 @@ const sendNotification = (message) => {
     });
   }
 };
-
 export default function App() {
-  const idle = useIdle(1000 * 60 * 3);
+  const idle = useIdle(1000 * 60 * 3); // 3 minutes
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
   const createHandler = useFullQueue((state) => state.createHandler);
   const updateHandler = useFullQueue((state) => state.updateHandler);
   const setIdleStatus = useIdleStatus((state) => state.setIdleStatus);
 
   useEffect(() => {
-    // Request notification permission when the app initializes
-    if (
-      Notification.permission !== 'granted' &&
-      Notification.permission !== 'denied'
-    ) {
-      Notification.requestPermission();
-    }
-  }, []);
-  useEffect(() => {
     if (pb.authStore.isValid) {
       setIdleStatus(idle);
+      fetchQueueLogic();
       if (!idle) {
-        fetchQueueLogic();
         pb.collection('queue').subscribe(
           '*',
           function (e) {
             if (e.action === 'delete') {
               deleteHandler(e.record.id);
+              deleteAudio.play(); // Play the delete sound
               sendNotification(
                 `Item with ID ${e.record.id} has been deleted from the queue.`
               );
@@ -73,6 +67,12 @@ export default function App() {
 
   return (
     <>
+      <Helmet>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+      </Helmet>
       {pb.authStore.isValid && <IdleOverly />}
       <RouterProvider router={router} />
     </>

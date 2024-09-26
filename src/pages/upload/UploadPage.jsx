@@ -6,8 +6,12 @@ import {
   usePatientRequestedScansData,
   useSelectedPatient,
 } from '../../stores/patientStore';
+import { useNavigate } from '@tanstack/react-router';
 
+import './upload.scss';
 export default function UploadPage() {
+  const navigate = useNavigate();
+
   const { selectedPatient } = useSelectedPatient();
   const { patientRequestedScansData, setPatientRequestedScansData } =
     usePatientRequestedScansData();
@@ -24,7 +28,6 @@ export default function UploadPage() {
               fields: 'id,metadata,collectionId,fulfilled',
             });
           setPatientRequestedScansData(data);
-          console.log(data);
         } catch (error) {
           console.error(error);
         }
@@ -44,7 +47,16 @@ export default function UploadPage() {
     return (
       <List>
         {patientRequestedScansData.items?.map((item) => (
-          <List.Item key={item.id} onClick={() => {}}>
+          <List.Item
+            key={item.id}
+            onClick={() =>
+              navigate({
+                to: '/upload/$uploadid',
+                params: { uploadid: item.id },
+                state: { itemData: item },
+              })
+            }
+          >
             {`${item.metadata.doctor_name} - ${item.metadata.creation_date}`}
           </List.Item>
         ))}

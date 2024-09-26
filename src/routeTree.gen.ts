@@ -16,6 +16,7 @@ import { Route as UploadIndexImport } from './routes/upload/index'
 import { Route as SettingsIndexImport } from './routes/settings/index'
 import { Route as NewpatientIndexImport } from './routes/newpatient/index'
 import { Route as LoginIndexImport } from './routes/login/index'
+import { Route as UploadUploadidImport } from './routes/upload/$uploadid'
 import { Route as NewpatientResultIdImport } from './routes/newpatient/result/$id'
 
 // Create/Update Routes
@@ -45,6 +46,11 @@ const LoginIndexRoute = LoginIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const UploadUploadidRoute = UploadUploadidImport.update({
+  path: '/upload/$uploadid',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const NewpatientResultIdRoute = NewpatientResultIdImport.update({
   path: '/newpatient/result/$id',
   getParentRoute: () => rootRoute,
@@ -59,6 +65,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/upload/$uploadid': {
+      id: '/upload/$uploadid'
+      path: '/upload/$uploadid'
+      fullPath: '/upload/$uploadid'
+      preLoaderRoute: typeof UploadUploadidImport
       parentRoute: typeof rootRoute
     }
     '/login/': {
@@ -103,6 +116,7 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   IndexRoute,
+  UploadUploadidRoute,
   LoginIndexRoute,
   NewpatientIndexRoute,
   SettingsIndexRoute,
@@ -119,6 +133,7 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.jsx",
       "children": [
         "/",
+        "/upload/$uploadid",
         "/login/",
         "/newpatient/",
         "/settings/",
@@ -128,6 +143,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/": {
       "filePath": "index.jsx"
+    },
+    "/upload/$uploadid": {
+      "filePath": "upload/$uploadid.jsx"
     },
     "/login/": {
       "filePath": "login/index.jsx"
