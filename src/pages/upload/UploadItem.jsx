@@ -332,19 +332,25 @@ function UploadItem({ itemData }) {
       for (const pf of previewFiles) {
         const formData = new FormData();
 
-        // Compress the image
-        const options = {
-          maxSizeMB: 0.15,
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-        };
-        const compressedFile = await imageCompression(
-          pf.file,
-          options
-        );
+        let fileToUpload;
+        if (pf.file.type.startsWith('image/')) {
+          // Compress the image
+          const options = {
+            maxSizeMB: 0.15,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+          };
+          fileToUpload = await imageCompression(pf.file, options);
+        } else if (pf.file.type === 'application/pdf') {
+          // Use the original PDF file without compression
+          fileToUpload = pf.file;
+        } else {
+          // Handle other file types if necessary
+          console.warn(`Unsupported file type: ${pf.file.type}`);
+          continue;
+        }
 
-        formData.append('attachments', compressedFile, pf.file.name);
-
+        formData.append('attachments', fileToUpload, pf.file.name);
         formData.append('fulfilled', 'true');
 
         const record = await pb

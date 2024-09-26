@@ -55,7 +55,11 @@ export default memo(function CommonLayout({ children }) {
           title="تسجيل"
           key="newpatient"
         />
-        <Tabs.Tab className="layout-tab" title="معمل" key="upload" />
+        <Tabs.Tab
+          className="layout-tab"
+          title="فحوصات"
+          key="upload"
+        />
         <Tabs.Tab
           className="layout-tab"
           title="الاعدادات"
