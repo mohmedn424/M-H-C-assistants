@@ -403,7 +403,7 @@ function UploadItem({ itemData }) {
           style={{ display: 'none' }}
           onChange={handleFileSelect}
           multiple
-          accept=".jpg,.jpeg,.png,.pdf"
+          accept=".jpg,.jpeg,.png"
         />
 
         <div className="upload-buttons-container">

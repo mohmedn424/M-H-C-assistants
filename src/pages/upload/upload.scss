@@ -32,7 +32,6 @@ $transition-duration: 0.3s;
 
 .upload-page {
   padding: $spacing-medium;
-  min-height: 100vh;
   user-select: none;
   .adm-space {
     gap: 0px !important;
@@ -107,12 +106,12 @@ $transition-duration: 0.3s;
 }
 
 .upload-item-wrapper {
-  background-color: rgba($primary-bg, 0.8);
+  background-color: rgba($primary-bg, 0.5);
   border-radius: $border-radius;
   box-shadow: $box-shadow;
   padding: $spacing-large;
   margin: $spacing-small;
-  margin-bottom: 80px;
+  margin-bottom: 100px;
   user-select: none;
 
   .upload-item-title {
@@ -173,8 +172,8 @@ $transition-duration: 0.3s;
 
     .upload-preview {
       display: flex;
-      flex-direction: column;
       align-items: center;
+      flex-wrap: wrap;
       gap: $spacing-medium;
       margin-bottom: $spacing-large;
       width: 100%;
@@ -183,7 +182,8 @@ $transition-duration: 0.3s;
       .preview-item {
         position: relative;
         width: 100%;
-        height: 280px;
+        height: 250px;
+        width: 150px;
         border-radius: $border-radius;
         overflow: hidden;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
