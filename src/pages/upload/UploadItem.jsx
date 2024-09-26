@@ -6,20 +6,30 @@ import {
   ZoomInOutlined,
   ZoomOutOutlined,
   CameraOutlined,
+  FilePdfOutlined,
 } from '@ant-design/icons';
+import pb from '../../lib/pocketbase';
+import { useNavigate } from '@tanstack/react-router';
+import imageCompression from 'browser-image-compression';
 
 const MAX_FILES = 10;
 const MIN_ZOOM = 100;
 const MAX_ZOOM = 300;
-
 const ImagePreview = ({ file, onRemove, onPreview }) => (
   <div className="preview-item">
-    <img
-      src={file.preview}
-      alt={`Preview`}
-      onClick={() => onPreview(file)}
-      style={{ cursor: 'pointer' }}
-    />
+    {file.file.type.startsWith('image/') ? (
+      <img
+        src={file.preview}
+        alt={`Preview`}
+        onClick={() => onPreview(file)}
+        style={{ cursor: 'pointer' }}
+      />
+    ) : (
+      <div className="pdf-preview" onClick={() => onPreview(file)}>
+        <FilePdfOutlined className="pdf-icon" />
+        <p>{file.file.name}</p>
+      </div>
+    )}
     <Button
       danger
       icon={<DeleteOutlined />}
@@ -33,7 +43,6 @@ const ImagePreview = ({ file, onRemove, onPreview }) => (
     />
   </div>
 );
-
 const ZoomControls = ({ zoomLevel, onZoom }) => (
   <div
     style={{
@@ -249,32 +258,43 @@ function UploadItem({ itemData }) {
   const handleFileSelect = (event) => {
     const files = Array.from(event.target.files);
 
-    const imageFiles = files.filter((file) =>
-      file.type.startsWith('image/')
+    const acceptedFiles = files.filter(
+      (file) =>
+        file.type === 'image/jpeg' ||
+        file.type === 'image/png' ||
+        file.type === 'application/pdf'
     );
 
-    if (imageFiles.length + previewFiles.length > MAX_FILES) {
-      message.warning(
-        `You can only upload a maximum of ${MAX_FILES} images.`
-      );
+    if (acceptedFiles.length !== files.length) {
+      message.error({
+        content: 'يرجى تحميل ملفات بصيغة JPG أو PNG أو PDF فقط.',
+        style: {
+          direction: 'rtl',
+        },
+      });
+    }
+
+    if (acceptedFiles.length + previewFiles.length > MAX_FILES) {
+      message.warning(`يمكنك فقط تحميل ${MAX_FILES} ملفات.`);
       return;
     }
 
-    const newPreviewFiles = imageFiles
+    const newPreviewFiles = acceptedFiles
       .filter((file) => {
-        // Check if the file name already exists in previewFiles
         return !previewFiles.some(
           (existingFile) => existingFile.file.name === file.name
         );
       })
       .map((file) => ({
         file,
-        preview: URL.createObjectURL(file),
+        preview: file.type.startsWith('image/')
+          ? URL.createObjectURL(file)
+          : null,
       }));
 
-    if (newPreviewFiles.length < imageFiles.length) {
+    if (newPreviewFiles.length < acceptedFiles.length) {
       message.info(
-        'Some images were skipped as they were already selected.'
+        'بعض الملفات تم تحميلها مسبقاً. فقط الملفات الجديدة سوف يتم تحميلها.'
       );
     }
 
@@ -282,6 +302,9 @@ function UploadItem({ itemData }) {
       ...prevFiles,
       ...newPreviewFiles,
     ]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const openCamera = () => {
@@ -298,26 +321,68 @@ function UploadItem({ itemData }) {
       prevFiles.filter((_, i) => i !== index)
     );
   };
+  const navigate = useNavigate();
 
-  const handleUpload = () => {
-    console.log(
-      'Files to upload:',
-      previewFiles.map((pf) => pf.file)
-    );
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentFileName, setCurrentFileName] = useState('');
+
+  const handleUpload = async () => {
+    setIsUploading(true);
+    try {
+      for (const pf of previewFiles) {
+        const formData = new FormData();
+
+        // Compress the image
+        const options = {
+          maxSizeMB: 0.15,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        };
+        const compressedFile = await imageCompression(
+          pf.file,
+          options
+        );
+
+        formData.append('attachments', compressedFile, pf.file.name);
+
+        formData.append('fulfilled', 'true');
+
+        const record = await pb
+          .collection('attachments')
+          .update(itemData?.id, formData);
+        console.log('File uploaded successfully:', record);
+      }
+      message.success('تم رفع الملفات بنجاح');
+      setPreviewFiles([]);
+      navigate({
+        to: '/',
+      });
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      message.error('فشل في رفع الملفات');
+    } finally {
+      setIsUploading(false);
+    }
   };
-
   const handlePreview = (file) => {
-    setPreviewImage(file.preview);
-    setPreviewVisible(true);
-    setZoomLevel(MIN_ZOOM); // Reset zoom level
-    resetPosition(); // Reset position
+    if (file.file.type === 'application/pdf') {
+      window.open(URL.createObjectURL(file.file), '_blank');
+    } else {
+      setPreviewImage(file.preview);
+      setCurrentFileName(file.file.name);
+      setPreviewVisible(true);
+      setZoomLevel(MIN_ZOOM);
+      resetPosition();
+    }
   };
 
-  if (!itemData.id) return null;
+  if (!itemData?.id) return null;
 
   return (
     <div className="upload-item-wrapper">
-      <h3 className="upload-item-title">Required Scans</h3>
+      <h3 className="upload-item-title">
+        التحاليل والاشعات المطلوبة
+      </h3>
       <div className="required-scans">
         {itemData.metadata.treatments_data.map((scan) => (
           <div className="required-scan" key={scan.key}>
@@ -332,17 +397,31 @@ function UploadItem({ itemData }) {
           style={{ display: 'none' }}
           onChange={handleFileSelect}
           multiple
-          accept="image/*"
+          accept=".jpg,.jpeg,.png,.pdf"
         />
+
         <div className="upload-buttons-container">
+          <Button icon={<CameraOutlined />} onClick={openCamera}>
+            التقاط صورة
+          </Button>
           <Button
             icon={<UploadOutlined />}
             onClick={() => fileInputRef.current.click()}
           >
-            Select Images
+            اختيار صور
           </Button>
-          <Button icon={<CameraOutlined />} onClick={openCamera}>
-            Take Photo
+
+          <Button
+            icon={<FilePdfOutlined />}
+            onClick={() => {
+              const pdfInput = document.createElement('input');
+              pdfInput.type = 'file';
+              pdfInput.accept = '.pdf,application/pdf';
+              pdfInput.onchange = handleFileSelect;
+              pdfInput.click();
+            }}
+          >
+            اختيار ملف PDF
           </Button>
         </div>
 
@@ -361,8 +440,10 @@ function UploadItem({ itemData }) {
             type="primary"
             onClick={handleUpload}
             className="upload-selected-files-btn"
+            loading={isUploading}
+            disabled={isUploading}
           >
-            Upload Selected Files
+            {isUploading ? 'جاري الرفع...' : 'رفع الملفات'}
           </Button>
         )}
       </div>
@@ -374,7 +455,7 @@ function UploadItem({ itemData }) {
           setZoomLevel(MIN_ZOOM);
           resetPosition();
         }}
-        title="Preview"
+        title={currentFileName}
         width="100%"
         centered
         style={{ top: 20 }}

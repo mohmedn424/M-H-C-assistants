@@ -26,11 +26,14 @@ $box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin: 8px;
   margin-bottom: 100px;
 
+  user-select: none;
+
   .upload-item-title {
     font-size: 20px;
     font-weight: 600;
     color: $text-color;
     margin-bottom: 16px;
+    text-align: center;
 
     @media (min-width: 768px) {
       font-size: 24px;
@@ -39,21 +42,16 @@ $box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   .required-scans {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
-
-    @media (min-width: 576px) {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
 
     .required-scan {
       @include flex-center;
       @include transition;
-      user-select: none;
       background-color: $secondary-bg;
       border-radius: 8px;
-      padding: 12px;
+      padding: 6px;
 
       &:hover {
         background-color: $hover-bg;
@@ -67,6 +65,8 @@ $box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-wrap: wrap;
+        text-align: center;
 
         @media (min-width: 768px) {
           font-size: 18px;
@@ -99,7 +99,6 @@ $box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       margin-bottom: 24px;
       width: 100%;
       justify-content: space-evenly;
-
       @media (min-width: 768px) {
         justify-content: space-evenly;
       }
@@ -111,6 +110,46 @@ $box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: $secondary-bg;
+        .pdf-preview {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          position: relative;
+
+          .pdf-icon {
+            font-size: 80px;
+            color: rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+          }
+
+          p {
+            font-size: 14px;
+            line-height: 1.2;
+            text-align: center;
+            word-break: break-word;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            position: relative;
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 4px;
+            max-width: 90%;
+          }
+        }
 
         img {
           width: 100%;
@@ -130,9 +169,92 @@ $box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             background: rgba($primary-bg, 0.9);
           }
         }
+        .preview-button {
+          position: absolute;
+          bottom: 8px;
+          left: 50%;
+          transform: translateX(-50%);
+          opacity: 1;
+          transition: transform 0.3s ease;
+          background-color: rgba(255, 255, 255, 0.8);
+          border: none;
+          border-radius: 16px;
+          padding: 6px 12px;
+          color: #333;
+          font-weight: 600;
+          font-size: 12px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 90%;
+
+          &:hover,
+          &:focus {
+            transform: translateX(-50%) translateY(-2px);
+            background-color: rgba(255, 255, 255, 0.9);
+          }
+
+          .anticon {
+            vertical-align: middle;
+          }
+
+          @media (min-width: 768px) {
+            opacity: 0;
+            bottom: 10px;
+            font-size: 14px;
+
+            &:hover {
+              opacity: 1;
+            }
+          }
+        }
+
+        &:hover {
+          .preview-button {
+            opacity: 1;
+          }
+        }
+        div {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 10px;
+          box-sizing: border-box;
+          position: relative;
+
+          .anticon-file-pdf {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            color: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+          }
+
+          p {
+            font-size: 14px;
+            line-height: 1.2;
+            text-align: center;
+            word-break: break-word;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            position: relative;
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 4px;
+            max-width: 90%;
+          }
+        }
       }
     }
-
     .upload-selected-files-btn {
       display: block;
       width: 100%;
