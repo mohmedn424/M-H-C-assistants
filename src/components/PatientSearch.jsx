@@ -7,10 +7,12 @@ import { useNavigate } from '@tanstack/react-router';
 import { useFloatingPanelState } from '../stores/userStore';
 import { useState } from 'react';
 
-export default function PatientSearch({ isModal = false }) {
+export default function PatientSearch({
+  isModal = false,
+  setSelectedPatient,
+}) {
   const navigate = useNavigate();
 
-  const { setSelectedPatient } = useSelectedPatient();
   const queryPatient = usePatientQuery((state) => state.queryPatient);
   const queryResultOptions = usePatientQuery(
     (state) => state.queryResultOptions

@@ -1,11 +1,11 @@
 import { FloatingPanel } from 'antd-mobile';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useFloatingPanelState } from '../stores/userStore';
 import AddToQueueModal from './AddToQueue';
 
-export const height = window.innerHeight * 0.8;
-
-const anchors = [90, height];
+export const height = window.innerHeight * 0.6;
+const ANCHORS = [90, height];
+const COLLAPSE_THRESHOLD = height / 2;
 
 export default function Floating() {
   const floatingRef = useRef(null);
@@ -15,16 +15,19 @@ export default function Floating() {
     if (floatingRef.current) {
       setFloatingRef(floatingRef.current);
     }
-  }, []);
+  }, [setFloatingRef]);
+
+  const handleHeightChange = useCallback(
+    (height) => {
+      setIsFloatOpen(height > COLLAPSE_THRESHOLD);
+    },
+    [setIsFloatOpen]
+  );
 
   return (
     <FloatingPanel
-      onHeightChange={(e) => {
-        if (e === 90 || e < height / 2) {
-          setIsFloatOpen(false);
-        } else setIsFloatOpen(true);
-      }}
-      anchors={anchors}
+      onHeightChange={handleHeightChange}
+      anchors={ANCHORS}
       ref={floatingRef}
     >
       <AddToQueueModal />

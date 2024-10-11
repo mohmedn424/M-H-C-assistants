@@ -22,6 +22,7 @@ export default memo(function NewPatientModal({ data }) {
         focusTriggerAfterClose
         zIndex={200}
         onOk={async () => {
+          console.log(selectedPatient);
           if (selectedPatient.length > 0) {
             const record = await pb
               .collection('queue')
@@ -53,7 +54,10 @@ export default memo(function NewPatientModal({ data }) {
           />
         </div>
         <br />
-        <PatientSearch set={setSelectedPatient} isModal={true} />
+        <PatientSearch
+          setSelectedPatient={setSelectedPatient}
+          isModal={true}
+        />
       </Modal>
 
       <Modal
