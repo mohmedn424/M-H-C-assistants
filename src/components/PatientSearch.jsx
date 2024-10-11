@@ -65,7 +65,7 @@ export default function PatientSearch({
         open={isOpen}
         labelInValue
         mode={isModal ? null : 'tags'}
-        maxCount={isModal ? null : 1}
+        maxCount={1}
         notFoundContent={
           <>
             <Button
