@@ -50,6 +50,7 @@ export default function PatientSearch({
           direction: 'rtl',
         }}
         onChange={(e) => {
+          setIsOpen(false);
           setSelectedPatient(e?.key || []);
         }}
         options={queryResultOptions}
