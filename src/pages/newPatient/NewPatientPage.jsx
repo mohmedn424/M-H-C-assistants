@@ -25,42 +25,55 @@ export default function NewpatientPage({
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  const formFinishHandler = async (e) => {
-    const data = {
-      ...e,
-      dob: dayjs(e.dob).format('YYYY-MM-DD'),
-      allergies: [],
-      operations: [],
-      created_by_assistant: pb.authStore.model.id,
-    };
-    const record = await pb.collection('patients').create(data);
-
-    if (record && isModal) {
+  const formFinishHandler = useCallback(
+    async (values) => {
+      setLoading(true);
       try {
-        const updatedRecord = await pb
-          .collection('queue')
-          .update(reservationData.id, {
-            name: '',
-            patient: record.id,
-          });
+        const data = {
+          ...values,
+          dob: values.dob && dayjs(values.dob).format('YYYY-MM-DD'),
+          allergies: [],
+          operations: [],
+          created_by_doctor: pb.authStore.model.id,
+          weight: values.weight
+            ? [
+                {
+                  weight: values.weight,
+                  date: dayjs().format('YYYY-MM-DD'),
+                },
+              ]
+            : undefined,
+          height: values.height
+            ? [
+                {
+                  height: values.height,
+                  date: dayjs().format('YYYY-MM-DD'),
+                },
+              ]
+            : undefined,
+        };
 
-        if (updatedRecord) {
-          setIsModalOpen(false);
-          message.success('تم إنشاء المريض الجديد بنجاح');
+        const record = await pb.collection('patients').create(data, {
+          fields:
+            'id,name,dob,sex,phone_number,address,weight,height,NID,martialStatus,smoker',
+        });
+
+        if (record) {
+          navigate({
+            params: { id: record.id },
+            to: '/newpatient/result/$id',
+            state: { patientData: record },
+          });
         }
       } catch (error) {
-        message.error('حدث خطأ أثناء إنشاء المريض الجديد');
+        console.error('Error creating patient:', error);
+        // Handle error (e.g., show error message to user)
+      } finally {
+        setLoading(false);
       }
-      return;
-    }
-
-    if (record && !isModal) {
-      navigate({
-        params: { id: record.id },
-        to: '/newpatient/result/$id',
-      });
-    }
-  };
+    },
+    [navigate]
+  );
   function handleInputFocus(event) {
     // Wait for the keyboard to appear
     setTimeout(() => {
@@ -151,7 +164,16 @@ export default function NewpatientPage({
               onFocus={handleInputFocus}
             />
           </Form.Item>
-          <Form.Item label="تاريخ الميلاد" name="dob">
+          <Form.Item
+            label="تاريخ الميلاد"
+            name="dob"
+            rules={[
+              {
+                required: true,
+                message: 'Must select patient date of birth',
+              },
+            ]}
+          >
             <DatePicker
               onFocus={handleInputFocus}
               format={[
