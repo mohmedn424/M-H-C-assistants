@@ -7,7 +7,7 @@
   overflow: hidden; // Add this to prevent any overflow
 
   .column {
-    padding: 0.5em 0; // Reduce padding
+    padding: 0.5em 0 120px 0; // Added bottom padding to prevent last card from being hidden
     height: calc(
       100dvh - 200px
     ); // Adjust height to account for headers and tabs
@@ -28,7 +28,7 @@
   }
 
   .queue-card-wrapper {
-    padding: 1.3em;
+    padding: 1.7em;
     display: flex;
     justify-content: space-between;
     align-items: center;
