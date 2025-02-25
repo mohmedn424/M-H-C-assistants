@@ -20,6 +20,19 @@ export default memo(function CommonLayout({ children }) {
     setFullPath(router.location.pathname);
   }, [router.location.pathname, setPath, setFullPath]);
 
+  useEffect(() => {
+    const handleBackButton = (event) => {
+      if (isFloatOpen) {
+        event.preventDefault();
+        closeFloat();
+      }
+    };
+
+    window.addEventListener('popstate', handleBackButton);
+    return () =>
+      window.removeEventListener('popstate', handleBackButton);
+  }, [isFloatOpen, closeFloat]);
+
   const handleTabChange = (key) => {
     const routes = {
       '/': '/',
