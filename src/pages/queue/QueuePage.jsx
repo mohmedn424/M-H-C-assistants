@@ -1,6 +1,8 @@
 import './queue.scss';
 import { memo, useEffect, useRef, useState } from 'react';
-import { Tabs, Swiper, Button, Popup, Radio } from 'antd-mobile';
+import { Tabs, Swiper, Popup, Radio } from 'antd-mobile';
+import { Button } from 'antd';
+import { RedoOutline } from 'antd-mobile-icons';
 import {
   useClinicsStore,
   useClinicValue,
@@ -12,6 +14,7 @@ import {
   useSelectedDoctor,
 } from '../../stores/userStore';
 import pb from '../../lib/pocketbase';
+
 import {
   useFullQueue,
   fetchQueueLogic,
@@ -91,14 +94,36 @@ const QueuePage = memo(function QueuePage() {
   return (
     <>
       <div className="queue-header">
-        <Button
-          className="filter-button"
-          onClick={() => setShowFilter(true)}
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            alignItems: 'center',
+          }}
         >
-          {clinicValue.length > 0
-            ? clinics.find((c) => c.id === clinicValue[0])?.name
-            : 'تصفية العيادات'}
-        </Button>
+          <Button
+            size="large"
+            className="filter-button"
+            onClick={() => setShowFilter(true)}
+          >
+            {clinicValue.length > 0
+              ? clinics.find((c) => c.id === clinicValue[0])?.name
+              : 'تصفية العيادات'}
+          </Button>
+          <Button
+            shape="circle"
+            size="large"
+            type="primary"
+            danger
+            onClick={() => {
+              fetchQueueLogic();
+              // window.location.reload();
+            }}
+            style={{ padding: '4px 8px' }}
+          >
+            <RedoOutline />
+          </Button>
+        </div>
       </div>
 
       <Popup
