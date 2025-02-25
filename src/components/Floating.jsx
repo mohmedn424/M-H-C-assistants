@@ -27,9 +27,17 @@ export default function Floating() {
     [setIsFloatOpen]
   );
 
+  const handleMaskClick = useCallback(() => {
+    if (floatingRef.current) {
+      floatingRef.current.setHeight(ANCHORS[0]);
+      setIsFloatOpen(false);
+    }
+  }, [setIsFloatOpen]);
+
   return (
     <FloatingPanel
       onHeightChange={handleHeightChange}
+      onMaskClick={handleMaskClick}
       anchors={ANCHORS}
       ref={floatingRef}
     >
