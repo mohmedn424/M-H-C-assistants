@@ -3,11 +3,14 @@
   align-items: start;
   justify-items: center;
   flex-wrap: wrap;
-  height: calc(100dvh - 110px);
+  height: calc(100dvh - 90px);
+  overflow: hidden; // Add this to prevent any overflow
 
   .column {
-    padding: 1em 0 1em 0;
-    height: calc(100dvh - 220px);
+    padding: 0.5em 0; // Reduce padding
+    height: calc(
+      100dvh - 200px
+    ); // Adjust height to account for headers and tabs
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -106,7 +109,7 @@
 }
 .queue-header {
   font-family: 'Tajawal', sans-serif;
-  padding: 12px;
+  padding: 8px; // Reduce padding
   .filter-button {
     width: 100%;
     padding: 8px;
