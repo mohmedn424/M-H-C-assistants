@@ -4,7 +4,7 @@ import { useFloatingPanelState } from '../stores/userStore';
 import AddToQueueModal from './AddToQueue';
 
 export const height = window.innerHeight * 0.8;
-const ANCHORS = [80, height];
+const ANCHORS = [100, height];
 const COLLAPSE_THRESHOLD = height / 6;
 
 export default function Floating() {
