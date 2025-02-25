@@ -10,15 +10,21 @@ export default defineConfig({
 
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
-      strategies: 'generateSW',
-
-      pwaAssets: {
-        disabled: false,
-        config: true,
-        preset: 'all',
+      injectRegister: 'script', // Changed from 'auto' to 'script'
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      devOptions: {
+        enabled: true,
+        navigateFallback: 'index.html',
+        type: 'module',
       },
-
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+      },
       manifest: {
         name: 'M-H-C Assistant',
         short_name: 'M-H-C',
@@ -59,19 +65,6 @@ export default defineConfig({
             purpose: 'maskable',
           },
         ],
-      },
-
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
-      },
-
-      devOptions: {
-        enabled: true,
-        navigateFallback: 'index.html',
-        suppressWarnings: true,
-        type: 'module',
       },
     }),
   ],
