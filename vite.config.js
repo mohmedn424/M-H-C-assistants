@@ -7,10 +7,9 @@ export default defineConfig({
   plugins: [
     react(),
     TanStackRouterVite(),
-
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'script', // Changed from 'auto' to 'script'
+      injectRegister: 'script',
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',
@@ -24,6 +23,19 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\./i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 5 * 60, // 5 minutes
+              },
+            },
+          },
+        ],
       },
       manifest: {
         name: 'M-H-C Assistant',

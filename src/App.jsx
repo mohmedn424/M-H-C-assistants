@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import IdleOverly from './components/IdleOverly';
 import deleteSound from './assets/notification.mp3';
 import { Helmet } from 'react-helmet';
+import ReloadPrompt from './components/ReloadPrompt';
 const deleteAudio = new Audio(deleteSound);
 
 // Create a new router instance
@@ -91,6 +92,7 @@ export default function App() {
       </Helmet>
       {pb.authStore.isValid && <IdleOverly />}
       <RouterProvider router={router} />
+      <ReloadPrompt />
     </>
   );
 }

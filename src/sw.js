@@ -31,7 +31,20 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Immediately claim all clients
-self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
+// Handle cache updates
+self.addEventListener('activate', async (event) => {
+  event.waitUntil(
+    Promise.all([
+      // Clear old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            return caches.delete(cacheName);
+          })
+        );
+      }),
+      // Take control of all clients
+      clients.claim(),
+    ])
+  );
 });
