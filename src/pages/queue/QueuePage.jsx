@@ -175,7 +175,7 @@ const QueuePage = memo(function QueuePage() {
       )}
       <motion.div layoutId="lol" className="queue-page-wrapper">
         <Swiper
-          slideSize={90}
+          slideSize={95}
           direction="horizontal"
           indicator={() => null}
           ref={swiperRef}

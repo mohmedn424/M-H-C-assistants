@@ -28,12 +28,11 @@
   }
 
   .queue-card-wrapper {
-    padding: 1.7em;
+    padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background-color: rgba(255, 255, 255, 0.5);
-    gap: 1.3em;
     margin: 0 1em;
     border-radius: 16px;
     direction: rtl;
@@ -47,9 +46,9 @@
       display: flex;
       flex-direction: column;
       align-items: start;
-      gap: 1em;
+      gap: 10px;
       h2 {
-        font-size: 1.4em;
+        font-size: 1.5em;
       }
       p {
         display: flex;
