@@ -171,3 +171,5 @@ export const fetchQueueLogic = async () => {
     throw error;
   }
 };
+// Remove the immediate execution and let components handle initialization
+// pb.authStore.isValid && fetchQueueLogic();

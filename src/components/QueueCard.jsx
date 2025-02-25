@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import NewPatientModal from './NewPatientModal';
 import { useNewPatientModal } from '../stores/patientStore';
 import { Dialog } from 'antd-mobile';
-import { fetchQueueLogic, useFullQueue } from '../stores/queueStore';
+import { useFullQueue } from '../stores/queueStore';
 
 const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
 const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
@@ -44,14 +44,12 @@ const showErrorMessage = () => {
     ),
   });
 };
-// Removed memo to ensure component always re-renders
-export default function QueueCard({ data, index }) {
+const QueueCard = memo(function QueueCard({ data }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
-  const updateHandler = useFullQueue((state) => state.updateHandler);
-  // Removed forceUpdate as it's no longer needed without memo
-  const handleDelete = async () => {
+
+  const handleDelete = useCallback(async () => {
     try {
       setLoading(true);
       await deleteHandler(data.id);
@@ -60,7 +58,7 @@ export default function QueueCard({ data, index }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [data.id, deleteHandler]);
 
   const handleStatusChange = async () => {
     try {
@@ -83,9 +81,7 @@ export default function QueueCard({ data, index }) {
       fetchQueueLogic();
       setLoading(false);
     }
-  };
-
-  // Rest of the component remains the same
+  }, [data.id, data.status]);
   const showDeleteConfirmation = () => {
     Dialog.show({
       content: (
@@ -128,8 +124,10 @@ export default function QueueCard({ data, index }) {
       ],
     });
   };
-
-  // Simplify the action button icon function
+  const handleActionButtonClick =
+    data.name.length > 0
+      ? () => setIsModalOpen(true)
+      : handleStatusChange;
   const getActionButtonIcon = () => {
     if (data.name.length === 0) {
       return data.status === QUEUE_STATUSES.WAITLIST ? (
@@ -140,14 +138,6 @@ export default function QueueCard({ data, index }) {
     }
     return <PlusOutlined />;
   };
-
-  // Simplify the action button click handler
-  const handleActionButtonClick = () =>
-    data.name.length > 0
-      ? setIsModalOpen(true)
-      : handleStatusChange();
-
-  // Simplify the getName function
   const getName = () => {
     const name =
       data.name?.length > 0 ? data.name : data.expand?.patient?.name;
@@ -157,7 +147,6 @@ export default function QueueCard({ data, index }) {
     const nameParts = name.split(' ');
     return nameParts.slice(0, 3).join(' ');
   };
-
   return (
     <>
       <NewPatientModal data={data} />

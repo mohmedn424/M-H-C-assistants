@@ -36,90 +36,56 @@ const sendNotification = (message) => {
 };
 
 export default function App() {
+  const idle = useIdle(1000 * 60 * 3);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
   const createHandler = useFullQueue((state) => state.createHandler);
   const updateHandler = useFullQueue((state) => state.updateHandler);
-  const { setClinicValues } = useClinicValue();
-  const { setDoctorValues } = useDoctorValue();
-  const { setSelectedDoctor } = useSelectedDoctor();
+  const setIdleStatus = useIdleStatus((state) => state.setIdleStatus);
 
-  // Memoize event handler to prevent recreation on each render
-  const handleQueueEvent = useCallback(
-    async (e) => {
-      switch (e.action) {
-        case 'delete':
-          try {
-            await deleteHandler(e.record.id);
-            deleteAudio
-              .play()
-              .catch((err) =>
-                console.warn('Audio play failed:', err)
-              );
-            sendNotification(
-              `Item with ID ${e.record.id} has been deleted from the queue.`
-            );
-          } catch (error) {
-            console.error('Failed to delete item:', error);
-          }
-          break;
-        case 'create':
-          createHandler(e.record);
-          break;
-        case 'update':
-          updateHandler(e.record);
-          break;
-      }
-    },
-    [deleteHandler, createHandler, updateHandler]
-  );
-
-  // Memoize meta tag content
-  const viewportContent = useMemo(
-    () =>
-      'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
-    []
-  );
-
-  // Initialize app data on startup
   useEffect(() => {
-    const initializeApp = async () => {
-      if (pb.authStore.isValid) {
-        // Set default clinic and doctor values from auth model
-        if (pb.authStore.model?.expand?.clinics?.length > 0) {
-          const defaultClinic =
-            pb.authStore.model.expand.clinics[0].id;
-          setClinicValues([defaultClinic]);
-        }
+    setIdleStatus(idle);
+  }, [idle]);
 
-        if (pb.authStore.model?.expand?.doctors?.length > 0) {
-          const defaultDoctor =
-            pb.authStore.model.expand.doctors[0].id;
-          setDoctorValues([defaultDoctor]);
-          setSelectedDoctor(defaultDoctor);
-        }
-
-        // Fetch queue data immediately on app start
-        await fetchQueueLogic();
-      }
-    };
-
-    initializeApp();
-  }, [setClinicValues, setDoctorValues, setSelectedDoctor]);
-
-  // Set up subscription to PocketBase changes
   useEffect(() => {
     if (!pb.authStore.isValid) return;
 
-    // Set up subscription
-    const unsubscribe = pb
-      .collection('queue')
-      .subscribe('*', handleQueueEvent, queueFetchOptions);
+    // Initial fetch
+    fetchQueueLogic();
 
-    // Clean up subscription on unmount
-    return () => {
-      unsubscribe();
-    };
-  }, [handleQueueEvent]);
+    // Set up subscription only if not idle
+    if (!idle) {
+      const unsubscribe = pb.collection('queue').subscribe(
+        '*',
+        async function (e) {
+          switch (e.action) {
+            case 'delete':
+              try {
+                await deleteHandler(e.record.id);
+                deleteAudio.play();
+                sendNotification(
+                  `Item with ID ${e.record.id} has been deleted from the queue.`
+                );
+              } catch (error) {
+                console.error('Failed to delete item:', error);
+                // Optionally show error message to user
+              }
+              break;
+            case 'create':
+              createHandler(e.record);
+              break;
+            case 'update':
+              updateHandler(e.record);
+              break;
+          }
+        },
+        queueFetchOptions
+      );
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [idle, pb.authStore.isValid]);
 
   return (
     <>
