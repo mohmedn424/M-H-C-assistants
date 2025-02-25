@@ -4,8 +4,9 @@ import { useFloatingPanelState } from '../stores/userStore';
 import AddToQueueModal from './AddToQueue';
 
 export const height = window.innerHeight * 0.8;
-const ANCHORS = [80, height / 2, height];
+const ANCHORS = [80, height];
 const COLLAPSE_THRESHOLD = height / 6;
+
 export default function Floating() {
   const floatingRef = useRef(null);
   const { setIsFloatOpen, setFloatingRef } = useFloatingPanelState();
@@ -17,8 +18,11 @@ export default function Floating() {
   }, [setFloatingRef]);
 
   const handleHeightChange = useCallback(
-    (height) => {
-      setIsFloatOpen(height > COLLAPSE_THRESHOLD);
+    (currentHeight) => {
+      setIsFloatOpen(currentHeight > COLLAPSE_THRESHOLD);
+      if (currentHeight > height / 2 && floatingRef.current) {
+        floatingRef.current.setHeight(height);
+      }
     },
     [setIsFloatOpen]
   );
