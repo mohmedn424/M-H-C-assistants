@@ -74,12 +74,12 @@ export default function ResultPage({ id }) {
               {
                 label: 'Weight',
                 key: 'weight',
-                children: data.weight,
+                children: data?.weight[0]?.weight,
               },
               {
                 label: 'Height',
                 key: 'height',
-                children: data.height,
+                children: data?.height[0]?.height,
               },
               { label: 'Sex', key: 'sex', children: data.sex },
               {

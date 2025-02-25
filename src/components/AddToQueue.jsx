@@ -2,7 +2,7 @@ import { Button, Divider, Form, Input, message, Radio } from 'antd';
 import PatientSearch from './PatientSearch';
 
 import pb from '../lib/pocketbase';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect } from 'react';
 import { useQueueModalState } from '../stores/queueStore';
 import {
   useClinicsStore,

@@ -425,10 +425,9 @@ $transition-duration: 0.3s;
 
 $border-radius: 12px;
 $font-size-base: 18px;
-$input-height: 40px;
+$input-height: 70px;
 $padding-base: 12px;
 $padding-large: 16px;
-
 .ant-select {
   width: 100%;
 
@@ -438,8 +437,7 @@ $padding-large: 16px;
     border: 1px solid #f0f0f0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     transition: all 0.3s ease;
-    height: auto !important;
-    min-height: $input-height;
+    max-height: $input-height;
     padding: 4px 11px;
     display: flex;
     align-items: center;
@@ -450,13 +448,10 @@ $padding-large: 16px;
   }
 
   .ant-select-selection-search {
-    position: absolute !important;
-    left: 11px;
-    right: 11px;
+    left: auto;
 
     .ant-select-selection-search-input {
-      height: auto !important;
-      min-height: $input-height;
+      max-height: $input-height;
       font-size: $font-size-base;
     }
   }
@@ -465,7 +460,11 @@ $padding-large: 16px;
     line-height: $input-height;
     font-size: $font-size-base;
     color: #999;
+    text-align: right;
+    right: 11px;
+    left: auto;
   }
+
   .ant-select-selection-item {
     font-size: $font-size-base;
     line-height: 1.4;
@@ -475,15 +474,16 @@ $padding-large: 16px;
     overflow: visible;
     text-overflow: initial;
     display: block;
-    padding: 4px 0;
-    max-width: 100%;
+    max-width: 90% !important;
     text-align: right;
   }
+
   &.ant-select-focused .ant-select-selector {
     border-color: #007bff;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
   }
 }
+
 .ant-select-dropdown {
   border-radius: $border-radius;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

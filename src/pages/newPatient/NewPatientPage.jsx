@@ -15,11 +15,14 @@ import { PhoneFilled, UserAddOutlined } from '@ant-design/icons';
 import pb from '../../lib/pocketbase';
 import { useNavigate } from '@tanstack/react-router';
 import { useNewPatientModal } from '../../stores/patientStore';
+import { useCallback, useState } from 'react';
 
 export default function NewpatientPage({
   isModal = false,
   reservationData = null,
 }) {
+  const [loading, setLoading] = useState(false);
+
   const { setIsModalOpen } = useNewPatientModal();
 
   const [form] = Form.useForm();
@@ -28,13 +31,14 @@ export default function NewpatientPage({
   const formFinishHandler = useCallback(
     async (values) => {
       setLoading(true);
+
       try {
         const data = {
           ...values,
           dob: values.dob && dayjs(values.dob).format('YYYY-MM-DD'),
           allergies: [],
           operations: [],
-          created_by_doctor: pb.authStore.model.id,
+          created_by_assistant: pb.authStore.model.id,
           weight: values.weight
             ? [
                 {
@@ -42,7 +46,7 @@ export default function NewpatientPage({
                   date: dayjs().format('YYYY-MM-DD'),
                 },
               ]
-            : undefined,
+            : [],
           height: values.height
             ? [
                 {
@@ -50,13 +54,14 @@ export default function NewpatientPage({
                   date: dayjs().format('YYYY-MM-DD'),
                 },
               ]
-            : undefined,
+            : [],
         };
-
+        console.log(data);
         const record = await pb.collection('patients').create(data, {
           fields:
             'id,name,dob,sex,phone_number,address,weight,height,NID,martialStatus,smoker',
         });
+        console.log(record);
 
         if (record) {
           navigate({
@@ -285,6 +290,7 @@ export default function NewpatientPage({
           <Button
             onClick={() => form.submit()}
             type="primary"
+            loading={loading}
             icon={<UserAddOutlined style={{ fontSize: 25 }} />}
             style={{
               marginTop: 10,

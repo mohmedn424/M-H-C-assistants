@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { useFloatingPanelState } from '../stores/userStore';
 import AddToQueueModal from './AddToQueue';
 
-export const height = window.innerHeight * 0.6;
+export const height = window.innerHeight * 0.9;
 const ANCHORS = [90, height];
 const COLLAPSE_THRESHOLD = height / 2;
 
