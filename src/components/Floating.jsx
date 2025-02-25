@@ -5,7 +5,7 @@ import AddToQueueModal from './AddToQueue';
 
 export const height = window.innerHeight * 0.8;
 const ANCHORS = [100, height];
-const COLLAPSE_THRESHOLD = height / 6;
+const COLLAPSE_THRESHOLD = height / 2;
 
 export default function Floating() {
   const floatingRef = useRef(null);
@@ -18,26 +18,15 @@ export default function Floating() {
   }, [setFloatingRef]);
 
   const handleHeightChange = useCallback(
-    (currentHeight) => {
-      setIsFloatOpen(currentHeight > COLLAPSE_THRESHOLD);
-      if (currentHeight > height / 2 && floatingRef.current) {
-        floatingRef.current.setHeight(height);
-      }
+    (height) => {
+      setIsFloatOpen(height > COLLAPSE_THRESHOLD);
     },
     [setIsFloatOpen]
   );
 
-  const handleMaskClick = useCallback(() => {
-    if (floatingRef.current) {
-      floatingRef.current.setHeight(ANCHORS[0]);
-      setIsFloatOpen(false);
-    }
-  }, [setIsFloatOpen]);
-
   return (
     <FloatingPanel
       onHeightChange={handleHeightChange}
-      onMaskClick={handleMaskClick}
       anchors={ANCHORS}
       ref={floatingRef}
     >
