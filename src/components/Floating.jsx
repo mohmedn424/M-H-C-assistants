@@ -3,10 +3,9 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { useFloatingPanelState } from '../stores/userStore';
 import AddToQueueModal from './AddToQueue';
 
-export const height = window.innerHeight * 0.9;
-const ANCHORS = [90, height];
-const COLLAPSE_THRESHOLD = height / 2;
-
+export const height = window.innerHeight * 0.8;
+const ANCHORS = [80, height / 2, height];
+const COLLAPSE_THRESHOLD = height / 6;
 export default function Floating() {
   const floatingRef = useRef(null);
   const { setIsFloatOpen, setFloatingRef } = useFloatingPanelState();
