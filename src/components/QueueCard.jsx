@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import NewPatientModal from './NewPatientModal';
 import { useNewPatientModal } from '../stores/patientStore';
 import { Dialog } from 'antd-mobile';
+import { useFullQueue } from '../stores/queueStore';
 
 const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
 const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
@@ -33,23 +34,21 @@ const showErrorMessage = () => {
     ),
   });
 };
-
 const QueueCard = memo(function QueueCard({ data }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
+  const deleteHandler = useFullQueue((state) => state.deleteHandler);
 
   const handleDelete = useCallback(async () => {
     try {
       setLoading(true);
-      await pb.collection('queue').delete(data.id);
-      Dialog.clear();
-      message.success('تم حذف المريض بنجاح'); // Success message in Arabic
+      await deleteHandler(data.id);
     } catch (error) {
       showErrorMessage();
     } finally {
       setLoading(false);
     }
-  }, [data.id]);
+  }, [data.id, deleteHandler]);
 
   const handleStatusChange = useCallback(async () => {
     try {
@@ -70,7 +69,6 @@ const QueueCard = memo(function QueueCard({ data }) {
       setLoading(false);
     }
   }, [data.id, data.status]);
-
   const showDeleteConfirmation = () => {
     Dialog.show({
       content: (
@@ -89,6 +87,7 @@ const QueueCard = memo(function QueueCard({ data }) {
           هل انت متاكد من حذف المريض من الدور ؟
         </h1>
       ),
+      closeOnAction: true,
       actions: [
         [
           {
@@ -96,19 +95,26 @@ const QueueCard = memo(function QueueCard({ data }) {
             key: 'yes',
             bold: true,
             danger: true,
-            onClick: handleDelete,
+            onClick: async () => {
+              await handleDelete();
+              Dialog.clear();
+            },
           },
-          { text: 'لا', key: 'cancel' },
+          {
+            text: 'لا',
+            key: 'cancel',
+            onClick: () => {
+              Dialog.clear();
+            },
+          },
         ],
       ],
     });
   };
-
   const handleActionButtonClick =
     data.name.length > 0
       ? () => setIsModalOpen(true)
       : handleStatusChange;
-
   const getActionButtonIcon = () => {
     if (data.name.length === 0) {
       return data.status === QUEUE_STATUSES.WAITLIST ? (
@@ -119,14 +125,12 @@ const QueueCard = memo(function QueueCard({ data }) {
     }
     return <PlusOutlined />;
   };
-
   const getName = () => {
     const nameParts = (
       data.name.length > 0 ? data.name : data.expand?.patient?.name
     ).split(' ');
     return nameParts.slice(0, 3).join(' ');
   };
-
   return (
     <>
       <NewPatientModal data={data} />
