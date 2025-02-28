@@ -6,8 +6,8 @@ import {
 } from '@ant-design/icons';
 import { Button, message, Tag } from 'antd';
 import pb from '../lib/pocketbase';
-import { memo, useCallback, useState } from 'react';
-import { motion } from 'framer-motion';
+import { memo, useCallback, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import NewPatientModal from './NewPatientModal';
 import { useNewPatientModal } from '../stores/patientStore';
 import { Dialog } from 'antd-mobile';
@@ -16,6 +16,17 @@ import { useFullQueue } from '../stores/queueStore';
 const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
 const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
 
+// Animation variants for the card - similar to Settings page itemVariants
+const cardVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 100 },
+  },
+};
+
+// Remove the itemVariants since we're not using them anymore
 const showErrorMessage = () => {
   message.error({
     content: (
@@ -34,12 +45,20 @@ const showErrorMessage = () => {
     ),
   });
 };
-const QueueCard = memo(function QueueCard({ data }) {
+// Remove memo from the component to ensure it always re-renders when props change
+function QueueCard({ data, index }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
+  const updateHandler = useFullQueue((state) => state.updateHandler);
 
-  const handleDelete = useCallback(async () => {
+  // Force the component to re-render when data changes
+  const [, forceUpdate] = useState({});
+  useEffect(() => {
+    forceUpdate({});
+  }, [data]);
+
+  const handleDelete = async () => {
     try {
       setLoading(true);
       await deleteHandler(data.id);
@@ -48,27 +67,39 @@ const QueueCard = memo(function QueueCard({ data }) {
     } finally {
       setLoading(false);
     }
-  }, [data.id, deleteHandler]);
+  };
 
-  const handleStatusChange = useCallback(async () => {
+  const handleStatusChange = async () => {
     try {
       setLoading(true);
-      await pb.collection('queue').update(
+      // Calculate the new status based on current data.status
+      const newStatus =
+        data.status === QUEUE_STATUSES.WAITLIST
+          ? QUEUE_STATUSES.BOOKING
+          : QUEUE_STATUSES.WAITLIST;
+
+      // Update the database first
+      const updatedRecord = await pb.collection('queue').update(
         data.id,
         {
-          status:
-            data.status === QUEUE_STATUSES.WAITLIST
-              ? QUEUE_STATUSES.BOOKING
-              : QUEUE_STATUSES.WAITLIST,
+          status: newStatus,
         },
-        { fields: 'none' }
+        {
+          fields:
+            'id,name,created,status,type,notes,expand.patient.id,expand.patient.name,expand.doctor.id,expand.doctor.name,expand.clinic.id',
+        }
       );
+
+      // Then update the store with the response from the server
+      updateHandler(updatedRecord);
     } catch (error) {
       showErrorMessage();
     } finally {
       setLoading(false);
     }
-  }, [data.id, data.status]);
+  };
+
+  // Rest of the component remains the same
   const showDeleteConfirmation = () => {
     Dialog.show({
       content: (
@@ -111,10 +142,8 @@ const QueueCard = memo(function QueueCard({ data }) {
       ],
     });
   };
-  const handleActionButtonClick =
-    data.name.length > 0
-      ? () => setIsModalOpen(true)
-      : handleStatusChange;
+
+  // Simplify the action button icon function
   const getActionButtonIcon = () => {
     if (data.name.length === 0) {
       return data.status === QUEUE_STATUSES.WAITLIST ? (
@@ -125,18 +154,37 @@ const QueueCard = memo(function QueueCard({ data }) {
     }
     return <PlusOutlined />;
   };
+
+  // Simplify the action button click handler
+  const handleActionButtonClick = () =>
+    data.name.length > 0
+      ? setIsModalOpen(true)
+      : handleStatusChange();
+
+  // Simplify the getName function
   const getName = () => {
-    const nameParts = (
-      data.name.length > 0 ? data.name : data.expand?.patient?.name
-    ).split(' ');
+    const name =
+      data.name?.length > 0 ? data.name : data.expand?.patient?.name;
+    if (!name) {
+      return 'Unknown Name'; // Default value if name is undefined
+    }
+    const nameParts = name.split(' ');
     return nameParts.slice(0, 3).join(' ');
   };
+
   return (
     <>
       <NewPatientModal data={data} />
       <motion.div
-        layoutId={data.id}
         className={`queue-card-wrapper ${data.status === QUEUE_STATUSES.BOOKING ? '' : 'reverse'}`}
+        variants={cardVariants}
+        layout
+        layoutId={`card-${data.id}`}
+        exit={{
+          opacity: 0,
+          scale: 0.9,
+          transition: { duration: 0.2 },
+        }}
       >
         <div className="left">
           <h2
@@ -149,13 +197,17 @@ const QueueCard = memo(function QueueCard({ data }) {
           <p>
             {data.notes.length > 0 ? data.notes : 'لا توجد ملاحظات'}
           </p>
-          <Tag
-            color={
-              data.type === PATIENT_TYPES.NEW ? 'green' : 'yellow'
-            }
-          >
-            {data.type === PATIENT_TYPES.NEW ? 'كشف جديد' : 'استشارة'}
-          </Tag>
+          <div>
+            <Tag
+              color={
+                data.type === PATIENT_TYPES.NEW ? 'green' : 'yellow'
+              }
+            >
+              {data.type === PATIENT_TYPES.NEW
+                ? 'كشف جديد'
+                : 'استشارة'}
+            </Tag>
+          </div>
         </div>
         <div className="right">
           <Button
@@ -179,6 +231,6 @@ const QueueCard = memo(function QueueCard({ data }) {
       </motion.div>
     </>
   );
-});
+}
 
 export default QueueCard;
