@@ -10,6 +10,11 @@ import { useEffect, useCallback, useMemo } from 'react';
 import deleteSound from './assets/notification.mp3';
 import { Helmet } from 'react-helmet';
 import ReloadPrompt from './components/ReloadPrompt';
+import {
+  useClinicValue,
+  useDoctorValue,
+  useSelectedDoctor,
+} from './stores/userStore';
 
 // Create audio instance outside component to prevent recreation on renders
 const deleteAudio = new Audio(deleteSound);
@@ -34,6 +39,10 @@ export default function App() {
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
   const createHandler = useFullQueue((state) => state.createHandler);
   const updateHandler = useFullQueue((state) => state.updateHandler);
+  const { setClinicValues } = useClinicValue();
+  const { setDoctorValues } = useDoctorValue();
+  const { setSelectedDoctor } = useSelectedDoctor();
+
   // Memoize event handler to prevent recreation on each render
   const handleQueueEvent = useCallback(
     async (e) => {
@@ -63,26 +72,55 @@ export default function App() {
     },
     [deleteHandler, createHandler, updateHandler]
   );
+
   // Memoize meta tag content
   const viewportContent = useMemo(
     () =>
       'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
     []
   );
+
+  // Initialize app data on startup
+  useEffect(() => {
+    const initializeApp = async () => {
+      if (pb.authStore.isValid) {
+        // Set default clinic and doctor values from auth model
+        if (pb.authStore.model?.expand?.clinics?.length > 0) {
+          const defaultClinic =
+            pb.authStore.model.expand.clinics[0].id;
+          setClinicValues([defaultClinic]);
+        }
+
+        if (pb.authStore.model?.expand?.doctors?.length > 0) {
+          const defaultDoctor =
+            pb.authStore.model.expand.doctors[0].id;
+          setDoctorValues([defaultDoctor]);
+          setSelectedDoctor(defaultDoctor);
+        }
+
+        // Fetch queue data immediately on app start
+        await fetchQueueLogic();
+      }
+    };
+
+    initializeApp();
+  }, [setClinicValues, setDoctorValues, setSelectedDoctor]);
+
   // Set up subscription to PocketBase changes
   useEffect(() => {
     if (!pb.authStore.isValid) return;
-    // Initial fetch
-    fetchQueueLogic();
+
     // Set up subscription
     const unsubscribe = pb
       .collection('queue')
       .subscribe('*', handleQueueEvent, queueFetchOptions);
+
     // Clean up subscription on unmount
     return () => {
       unsubscribe();
     };
   }, [handleQueueEvent]);
+
   return (
     <>
       <Helmet>

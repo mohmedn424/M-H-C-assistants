@@ -4,6 +4,18 @@ import BookingsCard from './BookingsCard';
 import QueueCard from './QueueCard';
 import { AnimatePresence, motion } from 'framer-motion';
 
+// Animation variants similar to Waitlist component
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
 export default memo(function Bookings() {
   const { bookings } = useBookings();
 
@@ -33,19 +45,10 @@ export default memo(function Bookings() {
       <BookingsCard />
       <div className="column">
         <motion.div
-          layoutId="lol"
           className="cards-wrapper"
           initial="hidden"
           animate="visible"
-          variants={{
-            hidden: {},
-            visible: {
-              transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2,
-              },
-            },
-          }}
+          variants={containerVariants}
         >
           <AnimatePresence mode="popLayout">
             {bookingItems}
