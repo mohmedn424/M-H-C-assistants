@@ -80,8 +80,6 @@ export default function SettingsPage() {
           <h1>{userData.name}</h1>
         </motion.div>
 
-        <Divider />
-
         {(userData.clinics.length > 0 ||
           userData.doctors.length > 0) && (
           <motion.div
