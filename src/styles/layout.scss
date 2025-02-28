@@ -40,6 +40,17 @@ $z-idle: 99999;
   }
 }
 
+// Hide scrollbars but keep scrolling functionality
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
 // Floating panel overlay
 .float-overlay {
   position: fixed;

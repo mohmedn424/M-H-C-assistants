@@ -72,7 +72,10 @@ const QueueCard = memo(function QueueCard({ data, index }) {
               ? QUEUE_STATUSES.BOOKING
               : QUEUE_STATUSES.WAITLIST,
         },
-        { fields: 'none' }
+        {
+          fields:
+            'id,name,created,status,type,notes,expand.patient.id,expand.patient.name,expand.doctor.id,expand.doctor.name,expand.clinic.id',
+        }
       );
 
       // Use the updateHandler from useFullQueue to update the local state
