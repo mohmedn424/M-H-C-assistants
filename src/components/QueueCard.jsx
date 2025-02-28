@@ -26,7 +26,6 @@ const cardVariants = {
   },
 };
 
-// Remove the itemVariants since we're not using them anymore
 const showErrorMessage = () => {
   message.error({
     content: (
@@ -45,19 +44,13 @@ const showErrorMessage = () => {
     ),
   });
 };
-// Remove memo from the component to ensure it always re-renders when props change
-function QueueCard({ data, index }) {
+// Removed memo to ensure component always re-renders
+export default function QueueCard({ data, index }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
   const updateHandler = useFullQueue((state) => state.updateHandler);
-
-  // Force the component to re-render when data changes
-  const [, forceUpdate] = useState({});
-  useEffect(() => {
-    forceUpdate({});
-  }, [data]);
-
+  // Removed forceUpdate as it's no longer needed without memo
   const handleDelete = async () => {
     try {
       setLoading(true);
@@ -72,21 +65,17 @@ function QueueCard({ data, index }) {
   const handleStatusChange = async () => {
     try {
       setLoading(true);
-
-      // Calculate the new status based on current data.status
       const newStatus =
         data.status === QUEUE_STATUSES.WAITLIST
           ? QUEUE_STATUSES.BOOKING
           : QUEUE_STATUSES.WAITLIST;
 
-      // Update the database first
       const updatedRecord = await pb
         .collection('queue')
         .update(data.id, {
           status: newStatus,
         });
 
-      // Then update the UI with the server response
       updateHandler(updatedRecord);
     } catch (error) {
       showErrorMessage();
@@ -228,5 +217,3 @@ function QueueCard({ data, index }) {
     </>
   );
 }
-
-export default QueueCard;

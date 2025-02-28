@@ -16,10 +16,11 @@ const containerVariants = {
   },
 };
 
-export default memo(function Waitlist() {
+// Removed memo to ensure component always re-renders with new data
+export default function Waitlist() {
   const { waitlist } = useWaitlist();
 
-  // Memoize the header height calculation
+  // Header height calculation
   const updateScrollPadding = useCallback(() => {
     const height =
       document.querySelector('.header-card')?.clientHeight;
@@ -33,12 +34,11 @@ export default memo(function Waitlist() {
     updateScrollPadding();
   }, [waitlist, updateScrollPadding]);
 
-  // Memoize the waitlist items with index for staggered animation
-  const waitlistItems = useMemo(() => {
-    return waitlist.map((item, index) => (
-      <QueueCard key={item.id} data={item} index={index} />
-    ));
-  }, [waitlist]);
+  // Removed useMemo to ensure items always re-render with fresh data
+  const waitlistItems = waitlist.map((item, index) => (
+    <QueueCard key={item.id} data={item} index={index} />
+  ));
+
   return (
     <>
       <WaitListCard />
@@ -56,4 +56,4 @@ export default memo(function Waitlist() {
       </div>
     </>
   );
-});
+}

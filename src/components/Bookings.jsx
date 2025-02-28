@@ -16,10 +16,11 @@ const containerVariants = {
   },
 };
 
-export default memo(function Bookings() {
+// Removed memo to ensure component always re-renders with new data
+export default function Bookings() {
   const { bookings } = useBookings();
 
-  // Memoize the header height calculation
+  // Header height calculation
   const updateScrollPadding = useCallback(() => {
     const height =
       document.querySelector('.header-card')?.clientHeight;
@@ -33,12 +34,10 @@ export default memo(function Bookings() {
     updateScrollPadding();
   }, [bookings, updateScrollPadding]);
 
-  // Memoize the booking items with index for staggered animation
-  const bookingItems = useMemo(() => {
-    return bookings.map((item, index) => (
-      <QueueCard key={item.id} data={item} index={index} />
-    ));
-  }, [bookings]);
+  // Removed useMemo to ensure items always re-render with fresh data
+  const bookingItems = bookings.map((item, index) => (
+    <QueueCard key={item.id} data={item} index={index} />
+  ));
 
   return (
     <>
@@ -57,4 +56,4 @@ export default memo(function Bookings() {
       </div>
     </>
   );
-});
+}
