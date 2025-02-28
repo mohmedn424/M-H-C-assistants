@@ -18,6 +18,13 @@
     gap: 1em;
     user-select: none;
     overflow-y: auto;
+
+    /* Hide scrollbar but maintain functionality */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
+    }
   }
   .cards-wrapper {
     width: 100%;
