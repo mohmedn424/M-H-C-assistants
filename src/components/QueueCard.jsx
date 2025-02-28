@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import NewPatientModal from './NewPatientModal';
 import { useNewPatientModal } from '../stores/patientStore';
 import { Dialog } from 'antd-mobile';
-import { useFullQueue } from '../stores/queueStore';
+import { fetchQueueLogic, useFullQueue } from '../stores/queueStore';
 
 const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
 const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
@@ -80,6 +80,7 @@ export default function QueueCard({ data, index }) {
     } catch (error) {
       showErrorMessage();
     } finally {
+      fetchQueueLogic();
       setLoading(false);
     }
   };
