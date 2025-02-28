@@ -160,78 +160,17 @@ export const useFullQueue = create((set, get) => ({
 
   // Update handler with optimistic updates
   updateHandler: (record) => {
-    const { fullQueue } = get();
-    const selectedDoctor =
-      useSelectedDoctor.getState().selectedDoctor;
-    const clinicValue = useClinicValue.getState().clinicValue;
+    const { fullQueue, updater } = get();
 
-    // First, check if this record should be visible based on doctor and clinic
-    const matchesDoctor =
-      record?.expand?.doctor?.id === selectedDoctor;
-    const matchesClinic =
-      !clinicValue.length ||
-      record?.expand?.clinic?.id === clinicValue[0];
-
-    // Update the main queue state
+    // Update local state
     const updatedQueue = fullQueue.map((item) =>
       item.id === record.id ? record : item
     );
+
     set({ fullQueue: updatedQueue });
 
-    // If this record is visible in the current view
-    if (matchesDoctor && matchesClinic) {
-      // Directly update the appropriate lists for immediate UI feedback
-      if (record.status === QUEUE_STATUS.WAITLIST) {
-        // Get current lists
-        const currentWaitlist = useWaitlist.getState().waitlist;
-        const currentBookings = useBookings.getState().bookings;
-
-        // Remove from bookings if it exists there
-        const newBookings = currentBookings.filter(
-          (item) => item.id !== record.id
-        );
-        useBookings.getState().setBookings(newBookings);
-
-        // Add to waitlist if not already there
-        if (!currentWaitlist.find((item) => item.id === record.id)) {
-          useWaitlist
-            .getState()
-            .setWaitlist([...currentWaitlist, record]);
-        } else {
-          // Update existing item in waitlist
-          const newWaitlist = currentWaitlist.map((item) =>
-            item.id === record.id ? record : item
-          );
-          useWaitlist.getState().setWaitlist(newWaitlist);
-        }
-      } else if (record.status === QUEUE_STATUS.BOOKING) {
-        // Get current lists
-        const currentWaitlist = useWaitlist.getState().waitlist;
-        const currentBookings = useBookings.getState().bookings;
-
-        // Remove from waitlist if it exists there
-        const newWaitlist = currentWaitlist.filter(
-          (item) => item.id !== record.id
-        );
-        useWaitlist.getState().setWaitlist(newWaitlist);
-
-        // Add to bookings if not already there
-        if (!currentBookings.find((item) => item.id === record.id)) {
-          useBookings
-            .getState()
-            .setBookings([...currentBookings, record]);
-        } else {
-          // Update existing item in bookings
-          const newBookings = currentBookings.map((item) =>
-            item.id === record.id ? record : item
-          );
-          useBookings.getState().setBookings(newBookings);
-        }
-      }
-    }
-
-    // Run the updater after a short delay to ensure consistency
-    setTimeout(() => get().updater(), 50);
+    // Update filtered lists
+    updater();
   },
 }));
 
