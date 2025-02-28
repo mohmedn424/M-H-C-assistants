@@ -2,11 +2,26 @@ import { Button, Form, Select } from 'antd';
 import { usePatientQuery } from '../stores/patientStore';
 import { useNavigate } from '@tanstack/react-router';
 import { useFloatingPanelState } from '../stores/userStore';
-import { useState, useEffect } from 'react';
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+  memo,
+} from 'react';
+import { debounce } from 'lodash';
+
+// Memoize the "Not Found" button component
+const AddNewPatientButton = memo(({ onClick }) => (
+  <Button onClick={onClick} size="large" style={{ width: '100%' }}>
+    اضافة مريض جديد
+  </Button>
+));
 
 export default function PatientSearch({
   isModal = false,
-  setSelectedPatient,
+  setSelectedPatient = () => {},
 }) {
   const navigate = useNavigate();
   const { queryPatient, queryResultOptions } = usePatientQuery();
@@ -15,75 +30,130 @@ export default function PatientSearch({
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
+  // Use refs to store timeouts for cleanup
+  const closeFloatTimeoutRef = useRef(null);
+  const navigateTimeoutRef = useRef(null);
+
+  // Debounce the search to prevent excessive API calls
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      if (value && value.length > 1) {
+        queryPatient(value);
+      }
+    }, 300),
+    [queryPatient]
+  );
+
+  // Clean up debounced function and timeouts on unmount
   useEffect(() => {
-    if (searchValue) {
-      queryPatient(searchValue);
-    }
-  }, [searchValue]);
+    return () => {
+      debouncedSearch.cancel();
+      if (closeFloatTimeoutRef.current)
+        clearTimeout(closeFloatTimeoutRef.current);
+      if (navigateTimeoutRef.current)
+        clearTimeout(navigateTimeoutRef.current);
+    };
+  }, [debouncedSearch]);
 
-  const handleSearch = (value) => {
-    setSearchValue(value);
-    setIsOpen(true);
-  };
+  // Handle search input changes
+  const handleSearch = useCallback(
+    (value) => {
+      setSearchValue(value);
+      setIsOpen(!!value);
+      debouncedSearch(value);
+    },
+    [debouncedSearch]
+  );
 
-  const handleSelect = (value, option) => {
-    setIsOpen(false);
-    setSearchValue('');
-    setSelectedPatient(option.key || []);
-  };
+  // Handle selection of a patient
+  const handleSelect = useCallback(
+    (value, option) => {
+      setIsOpen(false);
+      setSearchValue('');
+      setSelectedPatient(option.key || []);
+    },
+    [setSelectedPatient]
+  );
 
-  const handleBlur = () => {
+  // Handle blur event with delay to allow selection
+  const handleBlur = useCallback(() => {
     setTimeout(() => setIsOpen(false), 300);
-  };
+  }, []);
 
-  const handleFocus = () => {
+  // Handle focus event
+  const handleFocus = useCallback(() => {
     setIsOpen(true);
-  };
+  }, []);
 
-  const handleAddNewPatient = () => {
+  // Navigate to new patient page
+  const handleAddNewPatient = useCallback(() => {
     setIsOpen(false);
-    setTimeout(() => {
+
+    // Clear any existing timeouts
+    if (closeFloatTimeoutRef.current)
+      clearTimeout(closeFloatTimeoutRef.current);
+    if (navigateTimeoutRef.current)
+      clearTimeout(navigateTimeoutRef.current);
+
+    // Set new timeouts and store references
+    closeFloatTimeoutRef.current = setTimeout(() => {
       closeFloat();
     }, 500);
-    setTimeout(() => {
+
+    navigateTimeoutRef.current = setTimeout(() => {
       navigate({ to: '/newpatient' });
     }, 1000);
-  };
+  }, [closeFloat, navigate]);
+
+  // Memoize form item rules
+  const formRules = useMemo(
+    () => [{ required: true, message: 'لازم تكتب اسم المريض' }],
+    []
+  );
+
+  // Memoize select props for better performance
+  const selectProps = useMemo(
+    () => ({
+      showSearch: true,
+      size: 'large',
+      placeholder: 'اسم المريض',
+      onSearch: handleSearch,
+      searchValue: searchValue,
+      onSelect: handleSelect,
+      onBlur: handleBlur,
+      onFocus: handleFocus,
+      open: isOpen,
+      value: searchValue,
+      dropdownStyle: { direction: 'rtl' },
+      options: queryResultOptions,
+      allowClear: true,
+      labelInValue: true,
+      mode: 'tags',
+      maxCount: 1,
+      style: { width: '100%', direction: 'rtl' },
+    }),
+    [
+      handleSearch,
+      searchValue,
+      handleSelect,
+      handleBlur,
+      handleFocus,
+      isOpen,
+      queryResultOptions,
+    ]
+  );
 
   return (
     <Form.Item
       style={{ width: '100%' }}
       name="patient"
-      rules={[{ required: true, message: 'لازم تكتب اسم المريض' }]}
+      rules={formRules}
     >
       <Select
-        showSearch
-        size="large"
-        placeholder="اسم المريض"
-        onSearch={handleSearch}
-        searchValue={searchValue}
-        onSelect={handleSelect}
-        onBlur={handleBlur}
-        onFocus={handleFocus}
-        open={isOpen}
-        value={searchValue}
-        dropdownStyle={{ direction: 'rtl' }}
-        // filterOption={false}
-        options={queryResultOptions}
-        allowClear
-        labelInValue
-        mode={'tags'}
-        maxCount={1}
+        {...selectProps}
         notFoundContent={
-          <Button
-            onClick={handleAddNewPatient}
-            size="large"
-            style={{ width: '100%' }}
-          >
-            اضافة مريض جديد
-          </Button>
+          <AddNewPatientButton onClick={handleAddNewPatient} />
         }
-        style={{ width: '100%', direction: 'rtl' }}
       />
     </Form.Item>
   );

@@ -2,7 +2,7 @@ import { Button, Divider, Form, Input, message, Radio } from 'antd';
 import PatientSearch from './PatientSearch';
 
 import pb from '../lib/pocketbase';
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 import { useQueueModalState } from '../stores/queueStore';
 import {
   useClinicsStore,
@@ -26,10 +26,28 @@ export default memo(function AddToQueue() {
 
   const { toAddPatient } = useToAddPatient();
 
+  // Memoize the doctor options with null check
+  const doctorOptions = useMemo(() => {
+    // Add null check to prevent error when doctors is undefined
+    return (doctors || []).map((doctor) => ({
+      label: doctor.name_ar,
+      value: doctor.id,
+    }));
+  }, [doctors]);
+
+  // Memoize the clinic options with null check
+  const clinicOptions = useMemo(() => {
+    // Add null check to prevent error when clinics is undefined
+    return (clinics || []).map((clinic) => ({
+      label: clinic.name,
+      value: clinic.id,
+    }));
+  }, [clinics]);
+
   useEffect(() => {
     if (pb.authStore.isValid) {
-      setClinics(pb.authStore.model.expand?.clinics);
-      setDoctors(pb.authStore.model.expand?.doctors);
+      setClinics(pb.authStore.model?.expand?.clinics || []);
+      setDoctors(pb.authStore.model?.expand?.doctors || []);
     }
   }, []);
 
@@ -47,7 +65,7 @@ export default memo(function AddToQueue() {
       ...e,
       doctor: doctorValue[0],
       clinic: clinicValue[0],
-      assistant: pb.authStore.model.id,
+      assistant: pb.authStore.model?.id || '',
       name: '',
     };
 
@@ -69,6 +87,7 @@ export default memo(function AddToQueue() {
         messageApi.error('المريض متسجل قبل كدة');
     }
   };
+
   useEffect(() => {
     form.setFieldValue('status', mode);
   }, [mode]);
@@ -81,7 +100,7 @@ export default memo(function AddToQueue() {
         className="queue-form"
         initialValues={{
           type: 'new',
-          doctor: pb.authStore.model.id,
+          doctor: pb.authStore.model?.id || '', // Add null check here
         }}
         onFinish={(e) => handleAdding(e)}
         form={form}
@@ -132,15 +151,12 @@ export default memo(function AddToQueue() {
           />
         </Form.Item>
 
-        {doctors.length > 1 && (
+        {(doctors || []).length > 1 && (
           <Form.Item name="doctor" label="الطبيب">
             <Selector
               showCheckMark={false}
               columns={2}
-              options={doctors.map((doctor) => ({
-                label: doctor.name_ar,
-                value: doctor.id,
-              }))}
+              options={doctorOptions}
               value={[doctorValue]}
               onChange={(v) => {
                 if (v.length) {
@@ -156,15 +172,12 @@ export default memo(function AddToQueue() {
           </Form.Item>
         )}
 
-        {clinics.length > 1 && (
+        {(clinics || []).length > 1 && (
           <Form.Item name="clinic" label="العيادات">
             <Selector
               showCheckMark={false}
               columns={2}
-              options={clinics.map((doctor) => ({
-                label: doctor.name,
-                value: doctor.id,
-              }))}
+              options={clinicOptions}
               value={[clinicValue]}
               onChange={(v) => {
                 if (v.length) {

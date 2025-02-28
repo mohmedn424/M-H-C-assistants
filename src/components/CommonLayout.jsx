@@ -1,7 +1,7 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Tabs } from 'antd-mobile';
 import { Layout } from 'antd';
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useCallback, useMemo } from 'react';
 import {
   useCurrentRoute,
   useFloatingPanelState,
@@ -14,18 +14,21 @@ export default memo(function CommonLayout({ children }) {
   const { closeFloat, isFloatOpen } = useFloatingPanelState();
   const navigate = useNavigate();
 
+  // Memoize route update logic
   useEffect(() => {
     const pathSegment = router.location.pathname.split('/')[1];
     setPath(pathSegment === '' ? '/' : pathSegment);
     setFullPath(router.location.pathname);
   }, [router.location.pathname, setPath, setFullPath]);
 
+  // Handle back button for floating panel
   useEffect(() => {
+    // Only add listener if panel is open
+    if (!isFloatOpen) return;
+
     const handleBackButton = (event) => {
-      if (isFloatOpen) {
-        event.preventDefault();
-        closeFloat();
-      }
+      event.preventDefault();
+      closeFloat();
     };
 
     window.addEventListener('popstate', handleBackButton);
@@ -33,25 +36,37 @@ export default memo(function CommonLayout({ children }) {
       window.removeEventListener('popstate', handleBackButton);
   }, [isFloatOpen, closeFloat]);
 
-  const handleTabChange = (key) => {
-    const routes = {
+  // Memoize tab routes
+  const routes = useMemo(
+    () => ({
       '/': '/',
       newpatient: '/newpatient',
       upload: '/upload',
       settings: '/settings',
-    };
-    if (routes[key]) {
-      navigate({ to: routes[key] });
-    }
-  };
+    }),
+    []
+  );
+
+  // Memoize tab change handler
+  const handleTabChange = useCallback(
+    (key) => {
+      if (routes[key]) {
+        navigate({ to: routes[key] });
+      }
+    },
+    [navigate, routes]
+  );
+
+  // Memoize overlay class name
+  const overlayClassName = useMemo(
+    () => `float-overlay ${isFloatOpen ? 'float-overlay-open' : ''}`,
+    [isFloatOpen]
+  );
 
   return (
     <Layout className="main-app-container">
       <div className="container" style={{ overflowY: 'auto' }}>
-        <div
-          onClick={closeFloat}
-          className={`float-overlay ${isFloatOpen ? 'float-overlay-open' : ''}`}
-        ></div>
+        <div onClick={closeFloat} className={overlayClassName} />
         {children}
       </div>
 

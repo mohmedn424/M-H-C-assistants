@@ -6,26 +6,47 @@ import {
 } from '../stores/queueStore';
 import QueueCount from './QueueCount';
 import { useFloatingPanelState } from '../stores/userStore';
-import { memo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
 
-export default memo(function BookingCard() {
+const BookingCard = memo(function BookingCard() {
   const { setMode } = useQueueModalState();
   const { openFloat } = useFloatingPanelState();
-
   const { bookings } = useBookings();
 
+  // Memoize the booking count to prevent unnecessary re-renders
+  const bookingsCount = useMemo(() => bookings.length, [bookings]);
+
+  // Memoize the click handler to prevent recreation on each render
+  const handleAddClick = useCallback(() => {
+    setMode('booking');
+    openFloat();
+  }, [setMode, openFloat]);
+
+  // Animation variants for smoother transitions
+  const cardVariants = {
+    initial: { opacity: 0.8, y: -5 },
+    animate: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3 },
+    },
+  };
+
   return (
-    <div className="queue-card-wrapper header-card">
+    <motion.div
+      className="queue-card-wrapper header-card"
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      layoutId="bookings-header"
+    >
       <div className="left">
         <h2>الحجوزات</h2>
         <p>
-          <Tag color="geekblue">
-            {`الاجمالي: ${bookings.length}`}{' '}
-          </Tag>
+          <Tag color="geekblue">{`الاجمالي: ${bookingsCount}`} </Tag>
           <span>
-            {bookings.length > 0 && (
-              <QueueCount listMode="bookings" />
-            )}
+            {bookingsCount > 0 && <QueueCount listMode="bookings" />}
           </span>
         </p>
       </div>
@@ -36,12 +57,12 @@ export default memo(function BookingCard() {
           type="default"
           className="add-btn"
           icon={<PlusOutlined />}
-          onClick={() => {
-            setMode('booking');
-            openFloat();
-          }}
+          onClick={handleAddClick}
+          aria-label="Add booking"
         />
       </div>
-    </div>
+    </motion.div>
   );
 });
+
+export default BookingCard;
