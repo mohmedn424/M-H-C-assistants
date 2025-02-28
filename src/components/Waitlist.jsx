@@ -39,7 +39,6 @@ export default memo(function Waitlist() {
       <QueueCard key={item.id} data={item} index={index} />
     ));
   }, [waitlist]);
-
   return (
     <>
       <WaitListCard />
@@ -50,7 +49,7 @@ export default memo(function Waitlist() {
           animate="visible"
           variants={containerVariants}
         >
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="sync">
             {waitlistItems}
           </AnimatePresence>
         </motion.div>

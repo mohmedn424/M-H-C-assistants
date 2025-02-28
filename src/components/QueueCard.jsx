@@ -72,13 +72,23 @@ function QueueCard({ data, index }) {
   const handleStatusChange = async () => {
     try {
       setLoading(true);
+
       // Calculate the new status based on current data.status
       const newStatus =
         data.status === QUEUE_STATUSES.WAITLIST
           ? QUEUE_STATUSES.BOOKING
           : QUEUE_STATUSES.WAITLIST;
 
-      // Update the database first
+      // Create a temporary updated record for immediate UI update
+      const tempRecord = {
+        ...data,
+        status: newStatus,
+      };
+
+      // Update the UI immediately
+      updateHandler(tempRecord);
+
+      // Then update the database
       const updatedRecord = await pb.collection('queue').update(
         data.id,
         {
@@ -90,9 +100,15 @@ function QueueCard({ data, index }) {
         }
       );
 
-      // Then update the store with the response from the server
-      updateHandler(updatedRecord);
+      // Update with the actual server response if needed
+      if (
+        JSON.stringify(updatedRecord) !== JSON.stringify(tempRecord)
+      ) {
+        updateHandler(updatedRecord);
+      }
     } catch (error) {
+      // If there's an error, revert to the original status
+      updateHandler({ ...data });
       showErrorMessage();
     } finally {
       setLoading(false);

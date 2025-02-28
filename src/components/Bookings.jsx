@@ -50,7 +50,7 @@ export default memo(function Bookings() {
           animate="visible"
           variants={containerVariants}
         >
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="sync">
             {bookingItems}
           </AnimatePresence>
         </motion.div>
