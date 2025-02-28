@@ -6,47 +6,26 @@ import {
 } from '../stores/queueStore';
 import QueueCount from './QueueCount';
 import { useFloatingPanelState } from '../stores/userStore';
-import { memo, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { memo } from 'react';
 
-const BookingCard = memo(function BookingCard() {
+export default memo(function BookingCard() {
   const { setMode } = useQueueModalState();
   const { openFloat } = useFloatingPanelState();
+
   const { bookings } = useBookings();
 
-  // Memoize the booking count to prevent unnecessary re-renders
-  const bookingsCount = useMemo(() => bookings.length, [bookings]);
-
-  // Memoize the click handler to prevent recreation on each render
-  const handleAddClick = useCallback(() => {
-    setMode('booking');
-    openFloat();
-  }, [setMode, openFloat]);
-
-  // Animation variants for smoother transitions
-  const cardVariants = {
-    initial: { opacity: 0.8, y: -5 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3 },
-    },
-  };
-
   return (
-    <motion.div
-      className="queue-card-wrapper header-card"
-      variants={cardVariants}
-      initial="initial"
-      animate="animate"
-      layoutId="bookings-header"
-    >
+    <div className="queue-card-wrapper header-card">
       <div className="left">
         <h2>الحجوزات</h2>
         <p>
-          <Tag color="geekblue">{`الاجمالي: ${bookingsCount}`} </Tag>
+          <Tag color="geekblue">
+            {`الاجمالي: ${bookings.length}`}{' '}
+          </Tag>
           <span>
-            {bookingsCount > 0 && <QueueCount listMode="bookings" />}
+            {bookings.length > 0 && (
+              <QueueCount listMode="bookings" />
+            )}
           </span>
         </p>
       </div>
@@ -57,12 +36,12 @@ const BookingCard = memo(function BookingCard() {
           type="default"
           className="add-btn"
           icon={<PlusOutlined />}
-          onClick={handleAddClick}
-          aria-label="Add booking"
+          onClick={() => {
+            setMode('booking');
+            openFloat();
+          }}
         />
       </div>
-    </motion.div>
+    </div>
   );
 });
-
-export default BookingCard;

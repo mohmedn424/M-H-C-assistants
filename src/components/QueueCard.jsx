@@ -6,8 +6,8 @@ import {
 } from '@ant-design/icons';
 import { Button, message, Tag } from 'antd';
 import pb from '../lib/pocketbase';
-import { memo, useCallback, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { memo, useCallback, useState } from 'react';
+import { motion } from 'framer-motion';
 import NewPatientModal from './NewPatientModal';
 import { useNewPatientModal } from '../stores/patientStore';
 import { Dialog } from 'antd-mobile';
@@ -15,16 +15,6 @@ import { useFullQueue } from '../stores/queueStore';
 
 const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
 const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
-
-// Animation variants for the card - similar to Settings page itemVariants
-const cardVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { type: 'spring', stiffness: 100 },
-  },
-};
 
 const showErrorMessage = () => {
   message.error({
@@ -48,10 +38,6 @@ const QueueCard = memo(function QueueCard({ data }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
-  const updateHandler = useFullQueue((state) => state.updateHandler);
-  const fetchQueueLogic = useFullQueue(
-    (state) => state.fetchQueueLogic
-  );
 
   const handleDelete = useCallback(async () => {
     try {
@@ -67,25 +53,22 @@ const QueueCard = memo(function QueueCard({ data }) {
   const handleStatusChange = useCallback(async () => {
     try {
       setLoading(true);
-      const newStatus =
-        data.status === QUEUE_STATUSES.WAITLIST
-          ? QUEUE_STATUSES.BOOKING
-          : QUEUE_STATUSES.WAITLIST;
-
-      const updatedRecord = await pb
-        .collection('queue')
-        .update(data.id, {
-          status: newStatus,
-        });
-
-      updateHandler(updatedRecord);
+      await pb.collection('queue').update(
+        data.id,
+        {
+          status:
+            data.status === QUEUE_STATUSES.WAITLIST
+              ? QUEUE_STATUSES.BOOKING
+              : QUEUE_STATUSES.WAITLIST,
+        },
+        { fields: 'none' }
+      );
     } catch (error) {
       showErrorMessage();
     } finally {
-      await fetchQueueLogic();
       setLoading(false);
     }
-  }, [data.id, data.status, updateHandler, fetchQueueLogic]);
+  }, [data.id, data.status]);
   const showDeleteConfirmation = () => {
     Dialog.show({
       content: (
@@ -143,27 +126,17 @@ const QueueCard = memo(function QueueCard({ data }) {
     return <PlusOutlined />;
   };
   const getName = () => {
-    const name =
-      data.name?.length > 0 ? data.name : data.expand?.patient?.name;
-    if (!name) {
-      return 'Unknown Name'; // Default value if name is undefined
-    }
-    const nameParts = name.split(' ');
+    const nameParts = (
+      data.name.length > 0 ? data.name : data.expand?.patient?.name
+    ).split(' ');
     return nameParts.slice(0, 3).join(' ');
   };
   return (
     <>
       <NewPatientModal data={data} />
       <motion.div
+        layoutId={data.id}
         className={`queue-card-wrapper ${data.status === QUEUE_STATUSES.BOOKING ? '' : 'reverse'}`}
-        variants={cardVariants}
-        layout
-        layoutId={`card-${data.id}`}
-        exit={{
-          opacity: 0,
-          scale: 0.9,
-          transition: { duration: 0.2 },
-        }}
       >
         <div className="left">
           <h2
@@ -176,17 +149,13 @@ const QueueCard = memo(function QueueCard({ data }) {
           <p>
             {data.notes.length > 0 ? data.notes : 'لا توجد ملاحظات'}
           </p>
-          <div>
-            <Tag
-              color={
-                data.type === PATIENT_TYPES.NEW ? 'green' : 'yellow'
-              }
-            >
-              {data.type === PATIENT_TYPES.NEW
-                ? 'كشف جديد'
-                : 'استشارة'}
-            </Tag>
-          </div>
+          <Tag
+            color={
+              data.type === PATIENT_TYPES.NEW ? 'green' : 'yellow'
+            }
+          >
+            {data.type === PATIENT_TYPES.NEW ? 'كشف جديد' : 'استشارة'}
+          </Tag>
         </div>
         <div className="right">
           <Button
@@ -211,3 +180,5 @@ const QueueCard = memo(function QueueCard({ data }) {
     </>
   );
 });
+
+export default QueueCard;

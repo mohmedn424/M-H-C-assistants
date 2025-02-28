@@ -8,69 +8,28 @@ import {
   InputNumber,
   Radio,
   Switch,
-  message,
 } from 'antd';
 import dayjs from 'dayjs';
+
 import { PhoneFilled, UserAddOutlined } from '@ant-design/icons';
 import pb from '../../lib/pocketbase';
 import { useNavigate } from '@tanstack/react-router';
 import { useNewPatientModal } from '../../stores/patientStore';
-import { useCallback, useState, useEffect, useMemo } from 'react';
-import { Helmet } from 'react-helmet';
+import { useCallback, useState } from 'react';
 
-// Constants for Arabic text normalization
-const ARABIC_REPLACEMENTS = {
-  SPACES: /\s+/g,
-  YA: /ى/g,
-  ALEF: /أ|إ/g,
-  TA_MARBUTA: 'ة',
-  ABD_SPACE: 'عبد ',
-};
-
-// Date format options for the date picker
-const DATE_FORMATS = [
-  'DD-MM-YYYY',
-  'D-M-YYYY',
-  'D-MM-YYYY',
-  'DD-M-YYYY',
-  'DD/MM/YYYY',
-  'D/M/YYYY',
-  'D/MM/YYYY',
-  'DD/M/YYYY',
-  'DD\\MM\\YYYY',
-  'D\\M\\YYYY',
-  'D\\MM\\YYYY',
-  'DD\\M\\YYYY',
-];
-
-/**
- * New Patient Registration Component
- */
 export default function NewpatientPage({
   isModal = false,
   reservationData = null,
 }) {
   const [loading, setLoading] = useState(false);
+
   const { setIsModalOpen } = useNewPatientModal();
+
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  // Normalize Arabic text input
-  const normalizeArabicText = useCallback((text) => {
-    if (!text) return '';
-    return text
-      .replace(ARABIC_REPLACEMENTS.SPACES, ' ')
-      .replace(ARABIC_REPLACEMENTS.YA, 'ي')
-      .replace(ARABIC_REPLACEMENTS.ALEF, 'ا')
-      .replace(ARABIC_REPLACEMENTS.TA_MARBUTA, 'ه')
-      .replace(ARABIC_REPLACEMENTS.ABD_SPACE, 'عبد');
-  }, []);
-
-  // Handle form submission
   const formFinishHandler = useCallback(
     async (values) => {
-      if (loading) return; // Prevent multiple submissions
-
       setLoading(true);
 
       try {
@@ -97,14 +56,14 @@ export default function NewpatientPage({
               ]
             : [],
         };
-
+        console.log(data);
         const record = await pb.collection('patients').create(data, {
           fields:
             'id,name,dob,sex,phone_number,address,weight,height,NID,martialStatus,smoker',
         });
+        console.log(record);
 
         if (record) {
-          message.success('تم تسجيل المريض بنجاح');
           navigate({
             params: { id: record.id },
             to: '/newpatient/result/$id',
@@ -113,129 +72,70 @@ export default function NewpatientPage({
         }
       } catch (error) {
         console.error('Error creating patient:', error);
-        message.error('فشل تسجيل المريض، يرجى المحاولة مرة أخرى');
+        // Handle error (e.g., show error message to user)
       } finally {
         setLoading(false);
       }
     },
-    [navigate, loading]
+    [navigate]
   );
-
-  // Scroll input into view when focused
-  const handleInputFocus = useCallback((event) => {
+  function handleInputFocus(event) {
     // Wait for the keyboard to appear
     setTimeout(() => {
-      event?.target?.scrollIntoView({
+      event.target.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
       });
     }, 300);
-  }, []);
-  // Memoize form rules for better performance
-  const formRules = useMemo(
-    () => ({
-      name: [
-        {
-          required: true,
-          message: 'يجب ادخال اسم المريض رباعيا',
-        },
-        {
-          pattern: /^[\u0600-\u06FF\s]+$/,
-          message: 'يرجى إدخال الاسم باللغة العربية فقط',
-        },
-      ],
-      sex: [{ required: true, message: 'يجب اختيار النوع' }],
-      address: [
-        { required: true, message: 'يجب ادخال العنوان' },
-        {
-          pattern: /^[\u0600-\u06FF\s0-9]+$/,
-          message: 'يرجى إدخال العنوان باللغة العربية فقط',
-        },
-      ],
-      dob: [
-        {
-          required: true,
-          message: 'يجب اختيار تاريخ الميلاد',
-        },
-      ],
-      phone: [
-        { len: 11, message: 'رقم الهاتف يجب أن يكون 11 رقم' },
-        {
-          pattern: /^[0-9]+$/,
-          message: 'رقم الهاتف يجب أن يحتوي على أرقام فقط',
-        },
-      ],
-      nid: [
-        { len: 14, message: 'الرقم القومي يجب أن يكون 14 رقم' },
-        {
-          pattern: /^[0-9]+$/,
-          message: 'الرقم القومي يجب أن يحتوي على أرقام فقط',
-        },
-      ],
-    }),
-    []
-  );
-
-  // Set app height on mount and cleanup on unmount
-  useEffect(() => {
-    setAppHeight();
-    window.addEventListener('resize', setAppHeight);
-
-    if ('visualViewport' in window) {
-      window.visualViewport.addEventListener('resize', setAppHeight);
-    }
-
-    return () => {
-      window.removeEventListener('resize', setAppHeight);
-      if ('visualViewport' in window) {
-        window.visualViewport.removeEventListener(
-          'resize',
-          setAppHeight
-        );
-      }
-    };
-  }, []);
+  }
 
   return (
     <>
-      <Helmet>
-        <title>تسجيل مريض جديد</title>
-      </Helmet>
-
       <div
         className="new-patient-container"
         style={{
-          padding: isModal ? undefined : '1rem',
+          padding: isModal ? null : '1rem',
         }}
       >
         <h1>تسجيل مريض جديد</h1>
         <Divider />
         <Form
           form={form}
-          autoComplete="off"
+          autoComplete="new-state"
           className="form"
           layout="vertical"
           size="large"
+          clearOnDestroy
           onFinish={formFinishHandler}
           dir="rtl"
-          validateTrigger={['onChange', 'onSubmit']}
         >
           <Form.Item
             label="الاسم رباعي"
             name="name"
-            normalize={normalizeArabicText}
-            rules={formRules.name}
-            validateTrigger={['onChange', 'onBlur']}
+            normalize={(e) =>
+              e
+                .replace(/\s+/g, ' ')
+                .replace(/ى/g, 'ي')
+                .replace(/أ|إ/g, 'ا')
+                .replace('ة', 'ه')
+                .replace('عبد ', 'عبد')
+            }
+            rules={[
+              {
+                required: true,
+                message: 'يجب ادخال اسم المريض رباعيا',
+              },
+            ]}
             extra={
               <span style={{ userSelect: 'none' }}>
-                الاسم باللغة العربية فقط
+                الاسم باللغة العربية فقط{' '}
               </span>
             }
           >
             <Input
               onFocus={handleInputFocus}
               placeholder={reservationData?.name}
-              autoComplete="off"
+              autoComplete="new-state"
               lang="ar"
               style={{
                 textAlign: 'center',
@@ -244,8 +144,14 @@ export default function NewpatientPage({
               }}
             />
           </Form.Item>
-
-          <Form.Item label="النوع" name="sex" rules={formRules.sex}>
+          <Form.Item
+            label="النوع"
+            name="sex"
+            required
+            rules={[
+              { required: true, message: 'Must select patient sex' },
+            ]}
+          >
             <Radio.Group buttonStyle="solid">
               <Radio.Button value="male">ذكر</Radio.Button>
               <Radio.Button value="female">انثى</Radio.Button>
@@ -255,25 +161,49 @@ export default function NewpatientPage({
           <Form.Item
             label="العنوان"
             name="address"
-            normalize={(e) => e?.replace(/\s+/g, ' ')}
-            rules={formRules.address}
-            validateTrigger={['onChange', 'onBlur']}
+            normalize={(e) => e.replace(/\s+/g, ' ')}
+            rules={[{ required: true, message: 'يجب ادخال العنوان' }]}
           >
-            <Input autoComplete="off" onFocus={handleInputFocus} />
+            <Input
+              autoComplete="new-state"
+              onFocus={handleInputFocus}
+            />
           </Form.Item>
-
           <Form.Item
             label="تاريخ الميلاد"
             name="dob"
-            rules={formRules.dob}
+            rules={[
+              {
+                required: true,
+                message: 'Must select patient date of birth',
+              },
+            ]}
           >
             <DatePicker
               onFocus={handleInputFocus}
-              format={DATE_FORMATS}
+              format={[
+                'DD-MM-YYYY',
+                'D-M-YYYY',
+                'D-MM-YYYY',
+                'DD-M-YYYY',
+                'DD/MM/YYYY',
+                'D/M/YYYY',
+                'D/MM/YYYY',
+                'DD/M/YYYY',
+                'DD\\MM\\YYYY',
+                'D\\M\\YYYY',
+                'D\\MM\\YYYY',
+                'DD\\M\\YYYY',
+              ]}
               maxDate={dayjs()}
+              // onChange={(e) =>
+              //   setBasicInfo({
+              //     ...basicInfo,
+              //     dob: e,
+              //   })
+              // }
               picker="date"
               allowClear={true}
-              style={{ width: '100%' }}
             />
           </Form.Item>
 
@@ -282,27 +212,30 @@ export default function NewpatientPage({
               onFocus={handleInputFocus}
               controls={false}
               addonAfter="كيلوجرام"
-              style={{ width: '100%' }}
             />
           </Form.Item>
-
           <Form.Item label="الطول" name="height">
             <InputNumber
               onFocus={handleInputFocus}
               controls={false}
               addonAfter="سنتيميتر"
-              style={{ width: '100%' }}
             />
           </Form.Item>
 
           <Form.Item
             label="رقم الموبايل"
             name="phone_number"
-            rules={formRules.phone}
+            rules={[
+              { len: 11, message: 'Phone number is 11 number' },
+              {
+                pattern: /^[0-9]+$/,
+                message: "Phone number can't have text",
+              },
+            ]}
           >
             <Input
               onFocus={handleInputFocus}
-              autoComplete="off"
+              autoComplete="new-state"
               addonAfter={
                 <PhoneFilled
                   style={{ fontSize: 22, color: 'green' }}
@@ -310,16 +243,24 @@ export default function NewpatientPage({
               }
             />
           </Form.Item>
-
           <Form.Item
-            label="الرقم القومي"
+            label="الرقم القومي "
             name="NID"
-            rules={formRules.nid}
+            rules={[
+              { len: 14, message: 'NIN is 14 number' },
+              {
+                pattern: /^[0-9]+$/,
+                message: "National Id Number can't have text",
+              },
+            ]}
           >
             <Input onFocus={handleInputFocus} />
           </Form.Item>
-
-          <Form.Item label="الحالة الاجتماعية" name="martialStatus">
+          <Form.Item
+            label="الحالة الاجتماعية"
+            name="martialStatus"
+            labelCol={4}
+          >
             <Radio.Group
               buttonStyle="solid"
               onFocus={handleInputFocus}
@@ -330,15 +271,11 @@ export default function NewpatientPage({
               <Radio.Button value="Widowed">ارمل</Radio.Button>
             </Radio.Group>
           </Form.Item>
-
           <Form.Item label="ملاحظات" name="notes">
-            <Input.TextArea
-              autoSize={{ minRows: 2, maxRows: 6 }}
-              onFocus={handleInputFocus}
-            />
+            <Input.TextArea autoSize onFocus={handleInputFocus} />
           </Form.Item>
-
           <Form.Item
+            noStyle
             name="smoker"
             valuePropName="checked"
             initialValue={false}
@@ -359,7 +296,7 @@ export default function NewpatientPage({
               marginTop: 10,
               fontSize: 20,
               width: '100%',
-              marginBottom: isModal ? undefined : '120px',
+              marginBottom: isModal ? null : '120px',
             }}
           >
             تسجيل مريض جديد
@@ -370,8 +307,13 @@ export default function NewpatientPage({
   );
 }
 
-// Helper function to set app height for mobile viewport
 function setAppHeight() {
   const doc = document.documentElement;
   doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+
+window.addEventListener('resize', setAppHeight);
+setAppHeight();
+if ('visualViewport' in window) {
+  window.visualViewport.addEventListener('resize', setAppHeight);
 }

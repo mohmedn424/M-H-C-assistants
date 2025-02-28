@@ -1,9 +1,6 @@
 import create from 'zustand';
 import pb from '../lib/pocketbase';
 
-/**
- * Authentication store to manage user authentication state
- */
 export const useAuthStore = create((set) => ({
   isAuthenticated: pb.authStore.isValid,
   user: pb.authStore.model,

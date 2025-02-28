@@ -5,24 +5,20 @@ import {
   queueFetchOptions,
   useFullQueue,
 } from './stores/queueStore';
+import { useIdle } from '@uidotdev/usehooks';
+import { useIdleStatus } from './stores/userStore';
 import pb from './lib/pocketbase';
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect } from 'react';
+import IdleOverly from './components/IdleOverly';
 import deleteSound from './assets/notification.mp3';
 import { Helmet } from 'react-helmet';
 import ReloadPrompt from './components/ReloadPrompt';
-import {
-  useClinicValue,
-  useDoctorValue,
-  useSelectedDoctor,
-} from './stores/userStore';
-
-// Create audio instance outside component to prevent recreation on renders
 const deleteAudio = new Audio(deleteSound);
 
-// Create router instance outside component to prevent recreation
+// Create a new router instance
 const router = createRouter({ routeTree });
 
-// Notification helper function
+// Function to send browser notification
 const sendNotification = (message) => {
   if (Notification.permission === 'granted') {
     new Notification('Queue Update', { body: message });
@@ -34,7 +30,6 @@ const sendNotification = (message) => {
     });
   }
 };
-
 export default function App() {
   const idle = useIdle(1000 * 60 * 3);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
@@ -90,8 +85,12 @@ export default function App() {
   return (
     <>
       <Helmet>
-        <meta name="viewport" content={viewportContent} />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
       </Helmet>
+      {pb.authStore.isValid && <IdleOverly />}
       <RouterProvider router={router} />
       <ReloadPrompt />
     </>
