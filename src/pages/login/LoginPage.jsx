@@ -5,6 +5,12 @@ import pb from '../../lib/pocketbase';
 import { useAuthStore } from '../../stores/authStore';
 import { Helmet } from 'react-helmet';
 import { useNavigate } from '@tanstack/react-router';
+import { fetchQueueLogic } from '../../stores/queueStore';
+import {
+  useClinicValue,
+  useDoctorValue,
+  useSelectedDoctor,
+} from '../../stores/userStore';
 
 /**
  * Login page component for user authentication
@@ -14,6 +20,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
+  const { setClinicValues } = useClinicValue();
+  const { setDoctorValues } = useDoctorValue();
+  const { setSelectedDoctor } = useSelectedDoctor();
 
   // Memoize login handler to prevent recreation on each render
   const loginHandler = useCallback(
@@ -43,7 +52,26 @@ export default function LoginPage() {
 
         if (authData) {
           setAuth(authData);
+
+          // Set default clinic and doctor values
+          if (authData.record?.expand?.clinics?.length > 0) {
+            const defaultClinic =
+              authData.record.expand.clinics[0].id;
+            setClinicValues([defaultClinic]);
+          }
+
+          if (authData.record?.expand?.doctors?.length > 0) {
+            const defaultDoctor =
+              authData.record.expand.doctors[0].id;
+            setDoctorValues([defaultDoctor]);
+            setSelectedDoctor(defaultDoctor);
+          }
+
+          // Fetch queue data immediately after setting defaults
+          await fetchQueueLogic();
+
           message.success('Login successful!');
+
           // Use TanStack Router navigation instead of page reload
           navigate({ to: '/' });
         }
@@ -56,7 +84,14 @@ export default function LoginPage() {
         setLoading(false);
       }
     },
-    [loading, setAuth, navigate]
+    [
+      loading,
+      setAuth,
+      navigate,
+      setClinicValues,
+      setDoctorValues,
+      setSelectedDoctor,
+    ]
   );
 
   // Rest of the component remains the same

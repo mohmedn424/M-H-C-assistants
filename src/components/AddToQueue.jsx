@@ -26,17 +26,19 @@ export default memo(function AddToQueue() {
 
   const { toAddPatient } = useToAddPatient();
 
-  // Memoize the doctor options
+  // Memoize the doctor options with null check
   const doctorOptions = useMemo(() => {
-    return doctors.map((doctor) => ({
+    // Add null check to prevent error when doctors is undefined
+    return (doctors || []).map((doctor) => ({
       label: doctor.name_ar,
       value: doctor.id,
     }));
   }, [doctors]);
 
-  // Memoize the clinic options
+  // Memoize the clinic options with null check
   const clinicOptions = useMemo(() => {
-    return clinics.map((clinic) => ({
+    // Add null check to prevent error when clinics is undefined
+    return (clinics || []).map((clinic) => ({
       label: clinic.name,
       value: clinic.id,
     }));
@@ -44,8 +46,8 @@ export default memo(function AddToQueue() {
 
   useEffect(() => {
     if (pb.authStore.isValid) {
-      setClinics(pb.authStore.model.expand?.clinics);
-      setDoctors(pb.authStore.model.expand?.doctors);
+      setClinics(pb.authStore.model?.expand?.clinics || []);
+      setDoctors(pb.authStore.model?.expand?.doctors || []);
     }
   }, []);
 
@@ -63,7 +65,7 @@ export default memo(function AddToQueue() {
       ...e,
       doctor: doctorValue[0],
       clinic: clinicValue[0],
-      assistant: pb.authStore.model.id,
+      assistant: pb.authStore.model?.id || '',
       name: '',
     };
 
@@ -98,7 +100,7 @@ export default memo(function AddToQueue() {
         className="queue-form"
         initialValues={{
           type: 'new',
-          doctor: pb.authStore.model.id,
+          doctor: pb.authStore.model?.id || '', // Add null check here
         }}
         onFinish={(e) => handleAdding(e)}
         form={form}
@@ -149,7 +151,7 @@ export default memo(function AddToQueue() {
           />
         </Form.Item>
 
-        {doctors.length > 1 && (
+        {(doctors || []).length > 1 && (
           <Form.Item name="doctor" label="الطبيب">
             <Selector
               showCheckMark={false}
@@ -170,7 +172,7 @@ export default memo(function AddToQueue() {
           </Form.Item>
         )}
 
-        {clinics.length > 1 && (
+        {(clinics || []).length > 1 && (
           <Form.Item name="clinic" label="العيادات">
             <Selector
               showCheckMark={false}

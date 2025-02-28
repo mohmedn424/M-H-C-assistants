@@ -74,15 +74,14 @@ function useQueuePage() {
     },
     [setSelectedDoctor, updater]
   );
-
   // Memoize filtered doctors
   const filteredDoctors = useMemo(() => {
-    return doctors.filter(
+    // Add null check to prevent error when doctors is undefined
+    return (doctors || []).filter(
       (doctor) =>
         !clinicValue.length || doctor.clinic === clinicValue[0]
     );
   }, [doctors, clinicValue]);
-
   // Get selected doctor ID once
   const selectedDoctorId = useMemo(() => {
     return pb.authStore.model?.expand?.doctors?.[0]?.id || '';
@@ -187,7 +186,7 @@ const QueuePage = memo(function QueuePage() {
             value={clinicValue[0] || 'all'}
             onChange={handleFilterChange}
           >
-            {clinics.map((clinic) => (
+            {(clinics || []).map((clinic) => (
               <Radio
                 key={clinic.id}
                 value={clinic.id}

@@ -6,13 +6,14 @@ import {
   createRootRoute,
   useNavigate,
   redirect,
+  useRouterState,
 } from '@tanstack/react-router';
 import { isAuthenticated } from '../util/isAuthentectied';
-import LoginPage from '../pages/login/LoginPage';
 import CommonLayout from '../components/CommonLayout';
 import pb from '../lib/pocketbase';
 import { fetchQueueLogic } from '../stores/queueStore';
 import { useAuthStore } from '../stores/authStore';
+import { useClinicValue } from '../stores/userStore';
 
 // Initialize gradient outside component to prevent recreation
 const gradient = new Gradient();
@@ -47,6 +48,11 @@ function RootComponent() {
   const [authChecked, setAuthChecked] = React.useState(false);
   const isAuth = useAuthStore((state) => state.isAuthenticated);
   const navigate = useNavigate();
+  const router = useRouterState();
+  const { setClinicValues } = useClinicValue();
+
+  // Check if current route is login page
+  const isLoginPage = router.location.pathname === '/login';
 
   // Handle authentication refresh and gradient initialization
   React.useEffect(() => {
@@ -57,9 +63,16 @@ function RootComponent() {
     const refreshAuth = async () => {
       try {
         if (isAuthenticated()) {
-          await pb
+          const authData = await pb
             .collection('assistants')
             .authRefresh(AUTH_REFRESH_CONFIG);
+
+          // Set default clinic filter if available
+          if (authData?.record?.expand?.clinics?.length > 0) {
+            const defaultClinic =
+              authData.record.expand.clinics[0].id;
+            setClinicValues([defaultClinic]);
+          }
         }
       } catch (error) {
         console.error('Auth refresh error:', error);
@@ -72,7 +85,7 @@ function RootComponent() {
 
     // Cleanup gradient on unmount
     return () => gradient.pause();
-  }, []);
+  }, [setClinicValues]);
 
   // Handle data fetching when authentication state changes
   React.useEffect(() => {
@@ -81,7 +94,11 @@ function RootComponent() {
     }
   }, [isAuth, authChecked]);
 
-  // We can simplify this since beforeLoad handles the redirect
+  // Conditionally render with or without CommonLayout based on route
+  if (isLoginPage) {
+    return <Outlet />;
+  }
+
   return (
     <CommonLayout>
       <Outlet />
