@@ -45,16 +45,20 @@ const showErrorMessage = () => {
     ),
   });
 };
-const QueueCard = memo(function QueueCard({ data, index }) {
+// Remove memo from the component to ensure it always re-renders when props change
+function QueueCard({ data, index }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
   const updateHandler = useFullQueue((state) => state.updateHandler);
 
-  // Use data.status directly instead of local state
-  // This ensures the card's appearance matches its actual location
+  // Force the component to re-render when data changes
+  const [, forceUpdate] = useState({});
+  useEffect(() => {
+    forceUpdate({});
+  }, [data]);
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = async () => {
     try {
       setLoading(true);
       await deleteHandler(data.id);
@@ -63,9 +67,9 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     } finally {
       setLoading(false);
     }
-  }, [data.id, deleteHandler]);
+  };
 
-  const handleStatusChange = useCallback(async () => {
+  const handleStatusChange = async () => {
     try {
       setLoading(true);
       // Calculate the new status based on current data.status
@@ -93,7 +97,7 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     } finally {
       setLoading(false);
     }
-  }, [data.id, data.status, updateHandler]);
+  };
 
   // Rest of the component remains the same
   const showDeleteConfirmation = () => {
@@ -139,8 +143,8 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     });
   };
 
-  // Memoize the action button icon function
-  const getActionButtonIcon = useCallback(() => {
+  // Simplify the action button icon function
+  const getActionButtonIcon = () => {
     if (data.name.length === 0) {
       return data.status === QUEUE_STATUSES.WAITLIST ? (
         <ArrowRightOutlined />
@@ -149,19 +153,16 @@ const QueueCard = memo(function QueueCard({ data, index }) {
       );
     }
     return <PlusOutlined />;
-  }, [data.name.length, data.status]);
+  };
 
-  // Memoize the action button click handler
-  const handleActionButtonClick = useCallback(
-    () =>
-      data.name.length > 0
-        ? setIsModalOpen(true)
-        : handleStatusChange(),
-    [data.name.length, setIsModalOpen, handleStatusChange]
-  );
+  // Simplify the action button click handler
+  const handleActionButtonClick = () =>
+    data.name.length > 0
+      ? setIsModalOpen(true)
+      : handleStatusChange();
 
-  // In the getName function, add memoization
-  const getName = useCallback(() => {
+  // Simplify the getName function
+  const getName = () => {
     const name =
       data.name?.length > 0 ? data.name : data.expand?.patient?.name;
     if (!name) {
@@ -169,7 +170,7 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     }
     const nameParts = name.split(' ');
     return nameParts.slice(0, 3).join(' ');
-  }, [data.name, data.expand?.patient?.name]);
+  };
 
   return (
     <>
@@ -230,6 +231,6 @@ const QueueCard = memo(function QueueCard({ data, index }) {
       </motion.div>
     </>
   );
-});
+}
 
 export default QueueCard;
