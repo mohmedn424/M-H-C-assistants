@@ -48,6 +48,10 @@ const QueueCard = memo(function QueueCard({ data }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
+  const updateHandler = useFullQueue((state) => state.updateHandler);
+  const fetchQueueLogic = useFullQueue(
+    (state) => state.fetchQueueLogic
+  );
 
   const handleDelete = useCallback(async () => {
     try {
@@ -60,7 +64,7 @@ const QueueCard = memo(function QueueCard({ data }) {
     }
   }, [data.id, deleteHandler]);
 
-  const handleStatusChange = async () => {
+  const handleStatusChange = useCallback(async () => {
     try {
       setLoading(true);
       const newStatus =
@@ -78,10 +82,10 @@ const QueueCard = memo(function QueueCard({ data }) {
     } catch (error) {
       showErrorMessage();
     } finally {
-      fetchQueueLogic();
+      await fetchQueueLogic();
       setLoading(false);
     }
-  }, [data.id, data.status]);
+  }, [data.id, data.status, updateHandler, fetchQueueLogic]);
   const showDeleteConfirmation = () => {
     Dialog.show({
       content: (
@@ -206,4 +210,4 @@ const QueueCard = memo(function QueueCard({ data }) {
       </motion.div>
     </>
   );
-}
+});
