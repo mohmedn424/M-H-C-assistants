@@ -99,18 +99,18 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* {userData.doctors.length > 0 && (
+            {userData.doctors.length > 0 && (
               <div className="custom-card info-card">
                 <div className="custom-card-header">
                   <h3>الأطباء</h3>
                 </div>
                 <div className="custom-card-body">
                   {userData.doctors.map((doctor) => (
-                    <p key={doctor.id}>{doctor.name}</p>
+                    <p key={doctor.id}>{doctor.name_ar}</p>
                   ))}
                 </div>
               </div>
-            )} */}
+            )}
           </motion.div>
         )}
 

@@ -13,19 +13,16 @@ const Floating = memo(function Floating() {
   const floatingRef = useRef(null);
   const { setIsFloatOpen, setFloatingRef } = useFloatingPanelState();
 
-  // Set floating ref once when component mounts
   useEffect(() => {
     if (floatingRef.current) {
       setFloatingRef(floatingRef.current);
     }
 
-    // Cleanup function to prevent memory leaks
     return () => {
       setFloatingRef(null);
     };
   }, [setFloatingRef]);
 
-  // Memoized callback to prevent recreation on each render
   const handleHeightChange = useCallback(
     (height) => {
       setIsFloatOpen(height > COLLAPSE_THRESHOLD);
@@ -38,7 +35,14 @@ const Floating = memo(function Floating() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      style={{ width: '100%' }}
+      style={{
+        width: '100%',
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+      }}
     >
       <FloatingPanel
         onHeightChange={handleHeightChange}
@@ -46,8 +50,9 @@ const Floating = memo(function Floating() {
         ref={floatingRef}
         style={{
           maxWidth: '100%',
-          overflowX: 'hidden',
+          overflow: 'hidden',
         }}
+        disableBodyScroll={true}
       >
         <AddToQueueModal />
       </FloatingPanel>

@@ -29,9 +29,10 @@ import { motion } from 'framer-motion';
 function useQueuePage() {
   const [activeIndex, setActiveIndex] = useState(1);
   const [showFilter, setShowFilter] = useState(false);
+  const [showDoctorFilter, setShowDoctorFilter] = useState(false);
   const { clinics } = useClinicsStore();
   const { clinicValue, setClinicValues } = useClinicValue();
-  const { setSelectedDoctor } = useSelectedDoctor();
+  const { selectedDoctor, setSelectedDoctor } = useSelectedDoctor();
   const { updater } = useFullQueue();
   const { doctors } = useDoctorsStore();
 
@@ -64,7 +65,7 @@ function useQueuePage() {
   // Update when clinic filter changes
   useEffect(() => {
     updater();
-  }, [clinicValue, updater]);
+  }, [clinicValue, updater, selectedDoctor]);
 
   // Optimize doctor change handler with useCallback
   const handleDoctorChange = useCallback(
@@ -74,18 +75,40 @@ function useQueuePage() {
     },
     [setSelectedDoctor, updater]
   );
+
   // Memoize filtered doctors
   const filteredDoctors = useMemo(() => {
-    // Add null check to prevent error when doctors is undefined
-    return (doctors || []).filter(
-      (doctor) =>
-        !clinicValue.length || doctor.clinic === clinicValue[0]
+    if (!clinicValue.length) {
+      return doctors || [];
+    }
+
+    // Find the selected clinic
+    const selectedClinic = clinics?.find(
+      (clinic) => clinic.id === clinicValue[0]
     );
-  }, [doctors, clinicValue]);
+
+    if (
+      !selectedClinic ||
+      !selectedClinic.doctors ||
+      !selectedClinic.doctors.length
+    ) {
+      return [];
+    }
+
+    // Filter doctors that belong to the selected clinic
+    return (doctors || []).filter((doctor) =>
+      selectedClinic.doctors.includes(doctor.id)
+    );
+  }, [doctors, clinicValue, clinics]);
+
   // Get selected doctor ID once
   const selectedDoctorId = useMemo(() => {
-    return pb.authStore.model?.expand?.doctors?.[0]?.id || '';
-  }, []);
+    return (
+      selectedDoctor ||
+      pb.authStore.model?.expand?.doctors?.[0]?.id ||
+      ''
+    );
+  }, [selectedDoctor]);
 
   return {
     doctors: filteredDoctors,
@@ -98,6 +121,10 @@ function useQueuePage() {
     setShowFilter,
     clinicValue,
     setClinicValues,
+    showDoctorFilter,
+    setShowDoctorFilter,
+    selectedDoctor,
+    setSelectedDoctor,
   };
 }
 
@@ -114,6 +141,10 @@ const QueuePage = memo(function QueuePage() {
     setShowFilter,
     clinicValue,
     setClinicValues,
+    showDoctorFilter,
+    setShowDoctorFilter,
+    selectedDoctor,
+    setSelectedDoctor,
   } = useQueuePage();
 
   // Memoize clinic name for display
@@ -126,6 +157,17 @@ const QueuePage = memo(function QueuePage() {
     }
     return 'تصفية العيادات';
   }, [clinicValue, clinics]);
+
+  // Memoize doctor name for display
+  const doctorName = useMemo(() => {
+    if (selectedDoctor) {
+      return (
+        doctors.find((d) => d.id === selectedDoctor)?.name_ar ||
+        'تصفية الأطباء'
+      );
+    }
+    return 'تصفية الأطباء';
+  }, [selectedDoctor, doctors]);
 
   // Optimize refresh handler
   const handleRefresh = useCallback(() => {
@@ -145,6 +187,15 @@ const QueuePage = memo(function QueuePage() {
     [setClinicValues, setShowFilter]
   );
 
+  // Handle doctor filter change
+  const handleDoctorFilterChange = useCallback(
+    (val) => {
+      setSelectedDoctor(val);
+      setShowDoctorFilter(false);
+    },
+    [setSelectedDoctor, setShowDoctorFilter]
+  );
+
   return (
     <>
       <div className="queue-header">
@@ -155,6 +206,15 @@ const QueuePage = memo(function QueuePage() {
             alignItems: 'center',
           }}
         >
+          {doctors.length > 1 && (
+            <Button
+              size="large"
+              className="filter-button"
+              onClick={() => setShowDoctorFilter(true)}
+            >
+              {doctorName}
+            </Button>
+          )}
           <Button
             size="large"
             className="filter-button"
@@ -162,6 +222,7 @@ const QueuePage = memo(function QueuePage() {
           >
             {clinicName}
           </Button>
+
           <Button
             shape="circle"
             size="large"
@@ -199,25 +260,33 @@ const QueuePage = memo(function QueuePage() {
         </div>
       </Popup>
 
-      {doctors.length > 1 && (
-        <Tabs
-          activeLineMode="full"
-          className="queue-tabs-wrapper tabs-layout"
-          defaultActiveKey={selectedDoctorId}
-          onChange={handleDoctorChange}
-        >
-          {doctors.map((item) => (
-            <Tabs.Tab
-              className="layout-tab"
-              key={item.id}
-              title={item.name_ar}
-            />
-          ))}
-        </Tabs>
-      )}
+      <Popup
+        visible={showDoctorFilter}
+        onMaskClick={() => setShowDoctorFilter(false)}
+        bodyStyle={{ height: '40vh' }}
+      >
+        <div className="filter-popup">
+          <h3>اختر الطبيب</h3>
+          <Radio.Group
+            value={selectedDoctor}
+            onChange={handleDoctorFilterChange}
+          >
+            {doctors.map((doctor) => (
+              <Radio
+                key={doctor.id}
+                value={doctor.id}
+                className="clinic-radio"
+              >
+                {doctor.name_ar || doctor.name}
+              </Radio>
+            ))}
+          </Radio.Group>
+        </div>
+      </Popup>
+
       <motion.div layoutId="lol" className="queue-page-wrapper">
         <Swiper
-          slideSize={95}
+          slideSize={90}
           direction="horizontal"
           indicator={() => null}
           ref={swiperRef}

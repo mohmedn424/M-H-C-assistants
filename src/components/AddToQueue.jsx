@@ -26,14 +26,38 @@ export default memo(function AddToQueue() {
 
   const { toAddPatient } = useToAddPatient();
 
+  // Filter doctors based on selected clinic
+  const filteredDoctors = useMemo(() => {
+    if (!clinics || !doctors || !clinicValue.length)
+      return doctors || [];
+
+    // Find the selected clinic
+    const selectedClinic = clinics.find(
+      (clinic) => clinic.id === clinicValue[0]
+    );
+
+    if (
+      !selectedClinic ||
+      !selectedClinic.doctors ||
+      !selectedClinic.doctors.length
+    ) {
+      return []; // No doctors in this clinic
+    }
+
+    // Filter doctors that belong to the selected clinic
+    return doctors.filter((doctor) =>
+      selectedClinic.doctors.includes(doctor.id)
+    );
+  }, [clinics, doctors, clinicValue]);
+
   // Memoize the doctor options with null check
   const doctorOptions = useMemo(() => {
-    // Add null check to prevent error when doctors is undefined
-    return (doctors || []).map((doctor) => ({
-      label: doctor.name_ar,
+    // Use filtered doctors instead of all doctors
+    return (filteredDoctors || []).map((doctor) => ({
+      label: doctor.name_ar || doctor.name,
       value: doctor.id,
     }));
-  }, [doctors]);
+  }, [filteredDoctors]);
 
   // Memoize the clinic options with null check
   const clinicOptions = useMemo(() => {
@@ -54,6 +78,23 @@ export default memo(function AddToQueue() {
   useEffect(() => {
     form.setFieldValue('patient', toAddPatient);
   }, [toAddPatient]);
+
+  // Update doctor selection when clinic changes
+  useEffect(() => {
+    // When clinic changes, check if current doctor is valid for this clinic
+    if (clinicValue.length && filteredDoctors.length) {
+      const currentDoctorIsValid = filteredDoctors.some(
+        (doctor) => doctor.id === doctorValue[0]
+      );
+
+      if (!currentDoctorIsValid && filteredDoctors.length > 0) {
+        // If current doctor is not valid for this clinic, select the first available doctor
+        const newDoctorValue = filteredDoctors[0].id;
+        setDoctorValues([newDoctorValue]);
+        form.setFieldValue('doctor', newDoctorValue);
+      }
+    }
+  }, [clinicValue, filteredDoctors]);
 
   useEffect(() => {
     form.setFieldValue('doctor', doctorValue);
@@ -93,66 +134,113 @@ export default memo(function AddToQueue() {
   }, [mode]);
 
   return (
-    <>
+    <div
+      className="queue-form-container"
+      style={{ padding: '0 8px' }}
+    >
       {contextHolder}
       <Form
+        layout="vertical"
         size="large"
         className="queue-form"
         initialValues={{
           type: 'new',
-          doctor: pb.authStore.model?.id || '', // Add null check here
+          doctor: pb.authStore.model?.id || '',
         }}
         onFinish={(e) => handleAdding(e)}
         form={form}
         style={{
           userSelect: 'none',
+          overflowY: 'visible',
+          marginTop: '10px',
         }}
         dir="rtl"
       >
         <PatientSearch />
 
-        <Form.Item
-          name="status"
-          rules={[
-            {
-              required: true,
-              message: 'لازم تختار حجز ولا انتظار',
-            },
-          ]}
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            marginBottom: '12px',
+          }}
         >
-          <Radio.Group
-            className="status"
-            optionType="button"
-            buttonStyle="solid"
-            options={[
-              { label: 'الحجز', value: 'booking' },
-              { label: 'الانتظار', value: 'waitlist' },
+          <Form.Item
+            name="status"
+            style={{ margin: 0, flex: 1 }}
+            rules={[
+              {
+                required: true,
+                message: 'لازم تختار حجز ولا انتظار',
+              },
             ]}
-          />
-        </Form.Item>
+          >
+            <Radio.Group
+              className="status"
+              optionType="button"
+              buttonStyle="solid"
+              style={{ width: '100%' }}
+              options={[
+                { label: 'الحجز', value: 'booking' },
+                { label: 'الانتظار', value: 'waitlist' },
+              ]}
+            />
+          </Form.Item>
 
-        <Form.Item
-          name="type"
-          rules={[
-            {
-              required: true,
-              message: 'لازم تختار كشف ولا استشارة',
-            },
-          ]}
-        >
-          <Radio.Group
-            className="type"
-            optionType="button"
-            buttonStyle="solid"
-            options={[
-              { label: 'استشارة', value: 'follow' },
-              { label: 'كشف جديد', value: 'new' },
+          <Form.Item
+            name="type"
+            style={{ margin: 0, flex: 1 }}
+            rules={[
+              {
+                required: true,
+                message: 'لازم تختار كشف ولا استشارة',
+              },
             ]}
-          />
-        </Form.Item>
+          >
+            <Radio.Group
+              className="type"
+              optionType="button"
+              buttonStyle="solid"
+              style={{ width: '100%' }}
+              options={[
+                { label: 'استشارة', value: 'follow' },
+                { label: 'كشف', value: 'new' },
+              ]}
+            />
+          </Form.Item>
+        </div>
 
-        {(doctors || []).length > 1 && (
-          <Form.Item name="doctor" label="الطبيب">
+        {(clinics || []).length > 1 && (
+          <Form.Item
+            name="clinic"
+            label="العيادات"
+            style={{ marginBottom: '8px' }}
+          >
+            <Selector
+              showCheckMark={false}
+              columns={2}
+              options={clinicOptions}
+              value={[clinicValue]}
+              onChange={(v) => {
+                if (v.length) {
+                  form.setFieldValue('clinic', v[0]);
+                  setClinicValues([v[0]]);
+                } else
+                  form.setFieldValue(
+                    'clinic',
+                    clinicValue[clinicValue.length - 1]
+                  );
+              }}
+            />
+          </Form.Item>
+        )}
+
+        {(filteredDoctors || []).length > 1 && (
+          <Form.Item
+            name="doctor"
+            label="الطبيب"
+            style={{ marginBottom: '8px' }}
+          >
             <Selector
               showCheckMark={false}
               columns={2}
@@ -172,34 +260,14 @@ export default memo(function AddToQueue() {
           </Form.Item>
         )}
 
-        {(clinics || []).length > 1 && (
-          <Form.Item name="clinic" label="العيادات">
-            <Selector
-              showCheckMark={false}
-              columns={2}
-              options={clinicOptions}
-              value={[clinicValue]}
-              onChange={(v) => {
-                if (v.length) {
-                  form.setFieldValue('clinic', v[0]);
-                  setClinicValues([v[0]]);
-                } else
-                  form.setFieldValue(
-                    'clinic',
-                    clinicValue[clinicValue.length - 1]
-                  );
-              }}
-            />
-          </Form.Item>
-        )}
-        <Form.Item noStyle name="notes">
+        <Form.Item style={{ marginBottom: '8px' }} name="notes">
           <Input placeholder="ملاحظات" />
         </Form.Item>
-        <Divider />
-        <Button htmlType="submit" type="primary">
+        <Divider style={{ margin: '8px 0' }} />
+        <Button htmlType="submit" type="primary" block>
           اضافة للدور
         </Button>
       </Form>
-    </>
+    </div>
   );
 });

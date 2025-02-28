@@ -1,4 +1,4 @@
-import { memo, useEffect, useCallback, useMemo } from 'react';
+import { memo } from 'react';
 import { useBookings } from '../stores/queueStore';
 import BookingsCard from './BookingsCard';
 import QueueCard from './QueueCard';
@@ -24,27 +24,6 @@ const containerVariants = {
 export default memo(function Bookings() {
   const { bookings } = useBookings();
 
-  // Memoize the header height calculation
-  const updateScrollPadding = useCallback(() => {
-    const height =
-      document.querySelector('.header-card')?.clientHeight;
-    if (height) {
-      document.querySelector('.column').style.scrollPaddingTop =
-        `${height}px`;
-    }
-  }, []);
-
-  useEffect(() => {
-    updateScrollPadding();
-  }, [bookings, updateScrollPadding]);
-
-  // Memoize the booking items with index for staggered animation
-  const bookingItems = useMemo(() => {
-    return bookings.map((item, index) => (
-      <QueueCard key={item.id} data={item} index={index} />
-    ));
-  }, [bookings]);
-
   return (
     <>
       <BookingsCard />
@@ -56,8 +35,10 @@ export default memo(function Bookings() {
           exit="exit"
           variants={containerVariants}
         >
-          <AnimatePresence mode="popLayout">
-            {bookingItems}
+          <AnimatePresence>
+            {bookings.map((item, index) => (
+              <QueueCard key={item.id} data={item} index={index} />
+            ))}
           </AnimatePresence>
         </motion.div>
       </div>

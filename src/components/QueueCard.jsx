@@ -19,16 +19,17 @@ const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
 // Animation variants for card items
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: {
+  visible: (index) => ({
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
       type: 'spring',
-      stiffness: 100,
-      damping: 12,
+      stiffness: 200,
+      damping: 10,
+      delay: index * 0.1, // Small delay for staggered effect
     },
-  },
+  }),
   exit: {
     opacity: 0,
     scale: 0.9,
@@ -171,9 +172,7 @@ const QueueCard = memo(function QueueCard({ data, index }) {
           >
             {getName()}
           </h2>
-          <p>
-            {data.notes.length > 0 ? data.notes : 'لا توجد ملاحظات'}
-          </p>
+          {data?.notes?.length > 0 && <p>{data.notes}</p>}
           <Tag
             color={
               data.type === PATIENT_TYPES.NEW ? 'green' : 'yellow'

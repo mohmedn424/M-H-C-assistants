@@ -43,24 +43,51 @@ export default function LoginPage() {
               'record.verified',
               'token',
               'record.expand.doctors.id',
+              'record.expand.doctors.name_ar',
               'record.expand.doctors.name',
               'record.expand.clinics.id',
               'record.expand.clinics.name',
+              'record.expand.clinics.doctors',
             ].join(','),
             expand: 'doctors,clinics',
           });
 
+        // Inside the loginHandler function, update the clinic and doctor selection logic:
         if (authData) {
           setAuth(authData);
 
           // Set default clinic and doctor values
           if (authData.record?.expand?.clinics?.length > 0) {
-            const defaultClinic =
-              authData.record.expand.clinics[0].id;
-            setClinicValues([defaultClinic]);
-          }
+            const defaultClinic = authData.record.expand.clinics[0];
+            setClinicValues([defaultClinic.id]);
 
-          if (authData.record?.expand?.doctors?.length > 0) {
+            // Find doctors that belong to this clinic
+            if (
+              defaultClinic.doctors &&
+              defaultClinic.doctors.length > 0
+            ) {
+              // Find a doctor that belongs to this clinic
+              const clinicDoctors =
+                authData.record.expand.doctors.filter((doctor) =>
+                  defaultClinic.doctors.includes(doctor.id)
+                );
+
+              if (clinicDoctors.length > 0) {
+                const defaultDoctor = clinicDoctors[0].id;
+                setDoctorValues([defaultDoctor]);
+                setSelectedDoctor(defaultDoctor);
+              } else if (
+                authData.record?.expand?.doctors?.length > 0
+              ) {
+                // Fallback to first doctor if no doctors in clinic
+                const defaultDoctor =
+                  authData.record.expand.doctors[0].id;
+                setDoctorValues([defaultDoctor]);
+                setSelectedDoctor(defaultDoctor);
+              }
+            }
+          } else if (authData.record?.expand?.doctors?.length > 0) {
+            // If no clinics, just set the first doctor
             const defaultDoctor =
               authData.record.expand.doctors[0].id;
             setDoctorValues([defaultDoctor]);
@@ -71,8 +98,6 @@ export default function LoginPage() {
           await fetchQueueLogic();
 
           message.success('Login successful!');
-
-          // Use TanStack Router navigation instead of page reload
           navigate({ to: '/' });
         }
       } catch (error) {
