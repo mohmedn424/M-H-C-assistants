@@ -158,9 +158,12 @@ export const useFullQueue = create((set, get) => ({
     updater();
   },
 
-  // Update handler with optimistic updates
+  // Update handler with optimistic updates - MODIFIED FOR IMMEDIATE UPDATES
   updateHandler: (record) => {
-    const { fullQueue, updater } = get();
+    const { fullQueue } = get();
+    const selectedDoctor =
+      useSelectedDoctor.getState().selectedDoctor;
+    const clinicValue = useClinicValue.getState().clinicValue;
 
     // Update local state
     const updatedQueue = fullQueue.map((item) =>
@@ -169,8 +172,67 @@ export const useFullQueue = create((set, get) => ({
 
     set({ fullQueue: updatedQueue });
 
-    // Update filtered lists
-    updater();
+    // Direct update to the appropriate list based on the record's status
+    const matchesDoctor =
+      record?.expand?.doctor?.id === selectedDoctor;
+    const matchesClinic =
+      !clinicValue.length ||
+      record?.expand?.clinic?.id === clinicValue[0];
+
+    if (matchesDoctor && matchesClinic) {
+      if (record.status === QUEUE_STATUS.WAITLIST) {
+        // Update waitlist directly
+        const currentWaitlist = useWaitlist.getState().waitlist;
+        const existingIndex = currentWaitlist.findIndex(
+          (item) => item.id === record.id
+        );
+
+        if (existingIndex >= 0) {
+          // Update existing item
+          const newWaitlist = [...currentWaitlist];
+          newWaitlist[existingIndex] = record;
+          useWaitlist.getState().setWaitlist(newWaitlist);
+        } else {
+          // Add new item to waitlist and remove from bookings
+          useWaitlist
+            .getState()
+            .setWaitlist([...currentWaitlist, record]);
+          const currentBookings = useBookings.getState().bookings;
+          useBookings
+            .getState()
+            .setBookings(
+              currentBookings.filter((item) => item.id !== record.id)
+            );
+        }
+      } else if (record.status === QUEUE_STATUS.BOOKING) {
+        // Update bookings directly
+        const currentBookings = useBookings.getState().bookings;
+        const existingIndex = currentBookings.findIndex(
+          (item) => item.id === record.id
+        );
+
+        if (existingIndex >= 0) {
+          // Update existing item
+          const newBookings = [...currentBookings];
+          newBookings[existingIndex] = record;
+          useBookings.getState().setBookings(newBookings);
+        } else {
+          // Add new item to bookings and remove from waitlist
+          useBookings
+            .getState()
+            .setBookings([...currentBookings, record]);
+          const currentWaitlist = useWaitlist.getState().waitlist;
+          useWaitlist
+            .getState()
+            .setWaitlist(
+              currentWaitlist.filter((item) => item.id !== record.id)
+            );
+        }
+      }
+    }
+
+    // Still run the updater for consistency, but after the direct updates
+    setTimeout(() => get().updater(), 50);
   },
 }));
 
@@ -196,5 +258,3 @@ export const fetchQueueLogic = async () => {
     throw error;
   }
 };
-// Remove the immediate execution and let components handle initialization
-// pb.authStore.isValid && fetchQueueLogic();
