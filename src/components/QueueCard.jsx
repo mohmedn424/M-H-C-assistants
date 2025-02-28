@@ -49,6 +49,8 @@ const QueueCard = memo(function QueueCard({ data, index }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
+  // Get updateHandler from the store at component initialization
+  const updateHandler = useFullQueue((state) => state.updateHandler);
 
   const handleDelete = useCallback(async () => {
     try {
@@ -78,15 +80,16 @@ const QueueCard = memo(function QueueCard({ data, index }) {
         }
       );
 
-      // Use the updateHandler from useFullQueue to update the local state
-      const updateHandler = useFullQueue.getState().updateHandler;
+      // Use the updateHandler from props instead of getting it from the store again
       updateHandler(updatedRecord);
     } catch (error) {
       showErrorMessage();
     } finally {
       setLoading(false);
     }
-  }, [data.id, data.status]);
+  }, [data.id, data.status, updateHandler]); // Add updateHandler to dependencies
+
+  // Rest of the component remains the same
   const showDeleteConfirmation = () => {
     Dialog.show({
       content: (
