@@ -1,31 +1,27 @@
 import './queue.scss';
-import {
-  memo,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useCallback,
-} from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { Tabs, Swiper, Popup, Radio } from 'antd-mobile';
 import { Button } from 'antd';
 import { RedoOutline } from 'antd-mobile-icons';
 import {
   useClinicsStore,
   useClinicValue,
-  useDoctorsStore,
-  useSelectedDoctor,
 } from '../../stores/userStore';
 import Waitlist from '../../components/Waitlist';
 import Bookings from '../../components/Bookings';
+import {
+  useDoctorsStore,
+  useSelectedDoctor,
+} from '../../stores/userStore';
 import pb from '../../lib/pocketbase';
+
 import {
   useFullQueue,
   fetchQueueLogic,
 } from '../../stores/queueStore';
 import { motion } from 'framer-motion';
 
-// Custom hook with optimized logic
+// Custom hook
 function useQueuePage() {
   const [activeIndex, setActiveIndex] = useState(1);
   const [showFilter, setShowFilter] = useState(false);
@@ -34,9 +30,7 @@ function useQueuePage() {
   const { setSelectedDoctor } = useSelectedDoctor();
   const { updater } = useFullQueue();
   const { doctors } = useDoctorsStore();
-
-  // Memoize subscription setup to prevent unnecessary re-renders
-  const setupSubscription = useCallback(() => {
+  useEffect(() => {
     fetchQueueLogic();
 
     // Subscribe to real-time updates
@@ -51,42 +45,23 @@ function useQueuePage() {
           await fetchQueueLogic();
         }
       });
+
     return () => {
       pb.collection('queue').unsubscribe();
     };
   }, []);
-
-  // Setup subscription once on mount
-  useEffect(() => {
-    return setupSubscription();
-  }, [setupSubscription]);
-
-  // Update when clinic filter changes
   useEffect(() => {
     updater();
-  }, [clinicValue, updater]);
-
-  // Optimize doctor change handler with useCallback
-  const handleDoctorChange = useCallback(
-    (doctorId) => {
-      setSelectedDoctor(doctorId);
-      updater();
-    },
-    [setSelectedDoctor, updater]
+  }, [clinicValue]);
+  const handleDoctorChange = (doctorId) => {
+    setSelectedDoctor(doctorId);
+    updater();
+  };
+  const filteredDoctors = doctors.filter(
+    (doctor) =>
+      !clinicValue.length || doctor.clinic === clinicValue[0]
   );
-  // Memoize filtered doctors
-  const filteredDoctors = useMemo(() => {
-    // Add null check to prevent error when doctors is undefined
-    return (doctors || []).filter(
-      (doctor) =>
-        !clinicValue.length || doctor.clinic === clinicValue[0]
-    );
-  }, [doctors, clinicValue]);
-  // Get selected doctor ID once
-  const selectedDoctorId = useMemo(() => {
-    return pb.authStore.model?.expand?.doctors?.[0]?.id || '';
-  }, []);
-
+  const selectedDoctorId = pb.authStore.model.expand.doctors[0].id;
   return {
     doctors: filteredDoctors,
     clinics,
@@ -116,35 +91,6 @@ const QueuePage = memo(function QueuePage() {
     setClinicValues,
   } = useQueuePage();
 
-  // Memoize clinic name for display
-  const clinicName = useMemo(() => {
-    if (clinicValue.length > 0) {
-      return (
-        clinics.find((c) => c.id === clinicValue[0])?.name ||
-        'تصفية العيادات'
-      );
-    }
-    return 'تصفية العيادات';
-  }, [clinicValue, clinics]);
-
-  // Optimize refresh handler
-  const handleRefresh = useCallback(() => {
-    fetchQueueLogic();
-  }, []);
-
-  // Optimize filter change handler
-  const handleFilterChange = useCallback(
-    (val) => {
-      if (val === 'all') {
-        setClinicValues([]);
-      } else {
-        setClinicValues([val]);
-      }
-      setShowFilter(false);
-    },
-    [setClinicValues, setShowFilter]
-  );
-
   return (
     <>
       <div className="queue-header">
@@ -160,14 +106,19 @@ const QueuePage = memo(function QueuePage() {
             className="filter-button"
             onClick={() => setShowFilter(true)}
           >
-            {clinicName}
+            {clinicValue.length > 0
+              ? clinics.find((c) => c.id === clinicValue[0])?.name
+              : 'تصفية العيادات'}
           </Button>
           <Button
             shape="circle"
             size="large"
             type="primary"
             danger
-            onClick={handleRefresh}
+            onClick={() => {
+              fetchQueueLogic();
+              // window.location.reload();
+            }}
             style={{ padding: '4px 8px' }}
           >
             <RedoOutline />
@@ -184,9 +135,16 @@ const QueuePage = memo(function QueuePage() {
           <h3>اختر العيادة</h3>
           <Radio.Group
             value={clinicValue[0] || 'all'}
-            onChange={handleFilterChange}
+            onChange={(val) => {
+              if (val === 'all') {
+                setClinicValues([]);
+              } else {
+                setClinicValues([val]);
+              }
+              setShowFilter(false);
+            }}
           >
-            {(clinics || []).map((clinic) => (
+            {clinics.map((clinic) => (
               <Radio
                 key={clinic.id}
                 value={clinic.id}
