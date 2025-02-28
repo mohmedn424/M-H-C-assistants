@@ -64,7 +64,7 @@ const QueueCard = memo(function QueueCard({ data, index }) {
   const handleStatusChange = useCallback(async () => {
     try {
       setLoading(true);
-      await pb.collection('queue').update(
+      const updatedRecord = await pb.collection('queue').update(
         data.id,
         {
           status:
@@ -74,6 +74,10 @@ const QueueCard = memo(function QueueCard({ data, index }) {
         },
         { fields: 'none' }
       );
+
+      // Use the updateHandler from useFullQueue to update the local state
+      const updateHandler = useFullQueue.getState().updateHandler;
+      updateHandler(updatedRecord);
     } catch (error) {
       showErrorMessage();
     } finally {
