@@ -30,46 +30,43 @@ function useQueuePage() {
   const { setSelectedDoctor } = useSelectedDoctor();
   const { updater } = useFullQueue();
   const { doctors } = useDoctorsStore();
+
   useEffect(() => {
+    // Fetch queue data on component mount
     fetchQueueLogic();
 
-    // Subscribe to real-time updates
+    // Set up real-time subscription
     const subscription = pb
       .collection('queue')
       .subscribe('*', async (data) => {
-        // Don't refetch the entire queue for updates
-        if (data.action === 'create' || data.action === 'delete') {
-          await fetchQueueLogic();
-        }
-        // For updates, use the record directly
-        if (data.action === 'update') {
-          const { updateHandler } = useFullQueue.getState();
-          // Get the full record with expansions
-          const updatedRecord = await pb
-            .collection('queue')
-            .getOne(data.record.id, {
-              expand: 'patient,doctor,clinic,assistant',
-            });
-          updateHandler(updatedRecord);
-        }
+        // Refresh the entire queue on any change
+        await fetchQueueLogic();
       });
 
     return () => {
+      // Clean up subscription on unmount
       pb.collection('queue').unsubscribe();
     };
   }, []);
+
   useEffect(() => {
+    // Update filtered lists when clinic selection changes
     updater();
   }, [clinicValue]);
+
   const handleDoctorChange = (doctorId) => {
     setSelectedDoctor(doctorId);
     updater();
   };
+
+  // Filter doctors based on selected clinic
   const filteredDoctors = doctors.filter(
     (doctor) =>
       !clinicValue.length || doctor.clinic === clinicValue[0]
   );
+
   const selectedDoctorId = pb.authStore.model.expand.doctors[0].id;
+
   return {
     doctors: filteredDoctors,
     clinics,

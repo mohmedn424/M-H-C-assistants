@@ -79,36 +79,16 @@ function QueueCard({ data, index }) {
           ? QUEUE_STATUSES.BOOKING
           : QUEUE_STATUSES.WAITLIST;
 
-      // Create a temporary updated record for immediate UI update
-      const tempRecord = {
-        ...data,
-        status: newStatus,
-      };
-
-      // Update the UI immediately
-      updateHandler(tempRecord);
-
-      // Then update the database
-      const updatedRecord = await pb.collection('queue').update(
-        data.id,
-        {
+      // Update the database first
+      const updatedRecord = await pb
+        .collection('queue')
+        .update(data.id, {
           status: newStatus,
-        },
-        {
-          fields:
-            'id,name,created,status,type,notes,expand.patient.id,expand.patient.name,expand.doctor.id,expand.doctor.name,expand.clinic.id',
-        }
-      );
+        });
 
-      // Update with the actual server response if needed
-      if (
-        JSON.stringify(updatedRecord) !== JSON.stringify(tempRecord)
-      ) {
-        updateHandler(updatedRecord);
-      }
+      // Then update the UI with the server response
+      updateHandler(updatedRecord);
     } catch (error) {
-      // If there's an error, revert to the original status
-      updateHandler({ ...data });
       showErrorMessage();
     } finally {
       setLoading(false);
