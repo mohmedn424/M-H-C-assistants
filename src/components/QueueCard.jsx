@@ -16,6 +16,17 @@ import { useFullQueue } from '../stores/queueStore';
 const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
 const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
 
+// Animation variants for the card - similar to Settings page itemVariants
+const cardVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 100 },
+  },
+};
+
+// Remove the itemVariants since we're not using them anymore
 const showErrorMessage = () => {
   message.error({
     content: (
@@ -34,7 +45,7 @@ const showErrorMessage = () => {
     ),
   });
 };
-const QueueCard = memo(function QueueCard({ data }) {
+const QueueCard = memo(function QueueCard({ data, index }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
@@ -111,11 +122,8 @@ const QueueCard = memo(function QueueCard({ data }) {
       ],
     });
   };
-  const handleActionButtonClick =
-    data.name.length > 0
-      ? () => setIsModalOpen(true)
-      : handleStatusChange;
-  const getActionButtonIcon = () => {
+  // Memoize the action button icon function
+  const getActionButtonIcon = useCallback(() => {
     if (data.name.length === 0) {
       return data.status === QUEUE_STATUSES.WAITLIST ? (
         <ArrowRightOutlined />
@@ -124,19 +132,38 @@ const QueueCard = memo(function QueueCard({ data }) {
       );
     }
     return <PlusOutlined />;
-  };
-  const getName = () => {
-    const nameParts = (
-      data.name.length > 0 ? data.name : data.expand?.patient?.name
-    ).split(' ');
+  }, [data.name.length, data.status]);
+  // Memoize the action button click handler
+  const handleActionButtonClick = useCallback(
+    () =>
+      data.name.length > 0
+        ? setIsModalOpen(true)
+        : handleStatusChange(),
+    [data.name.length, setIsModalOpen, handleStatusChange]
+  );
+  // In the getName function, add memoization
+  const getName = useCallback(() => {
+    const name =
+      data.name?.length > 0 ? data.name : data.expand?.patient?.name;
+    if (!name) {
+      return 'Unknown Name'; // Default value if name is undefined
+    }
+    const nameParts = name.split(' ');
     return nameParts.slice(0, 3).join(' ');
-  };
+  }, [data.name, data.expand?.patient?.name]);
   return (
     <>
       <NewPatientModal data={data} />
       <motion.div
-        layoutId={data.id}
         className={`queue-card-wrapper ${data.status === QUEUE_STATUSES.BOOKING ? '' : 'reverse'}`}
+        variants={cardVariants}
+        // Remove layoutId, initial, animate, custom, and transition props
+        // as they're now controlled by the parent container
+        exit={{
+          opacity: 0,
+          scale: 0.9,
+          transition: { duration: 0.2 },
+        }}
       >
         <div className="left">
           <h2
@@ -149,13 +176,17 @@ const QueueCard = memo(function QueueCard({ data }) {
           <p>
             {data.notes.length > 0 ? data.notes : 'لا توجد ملاحظات'}
           </p>
-          <Tag
-            color={
-              data.type === PATIENT_TYPES.NEW ? 'green' : 'yellow'
-            }
-          >
-            {data.type === PATIENT_TYPES.NEW ? 'كشف جديد' : 'استشارة'}
-          </Tag>
+          <div>
+            <Tag
+              color={
+                data.type === PATIENT_TYPES.NEW ? 'green' : 'yellow'
+              }
+            >
+              {data.type === PATIENT_TYPES.NEW
+                ? 'كشف جديد'
+                : 'استشارة'}
+            </Tag>
+          </div>
         </div>
         <div className="right">
           <Button

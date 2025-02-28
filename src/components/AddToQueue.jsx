@@ -2,7 +2,7 @@ import { Button, Divider, Form, Input, message, Radio } from 'antd';
 import PatientSearch from './PatientSearch';
 
 import pb from '../lib/pocketbase';
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 import { useQueueModalState } from '../stores/queueStore';
 import {
   useClinicsStore,
@@ -25,6 +25,22 @@ export default memo(function AddToQueue() {
   const { clinicValue, setClinicValues } = useClinicValue();
 
   const { toAddPatient } = useToAddPatient();
+
+  // Memoize the doctor options
+  const doctorOptions = useMemo(() => {
+    return doctors.map((doctor) => ({
+      label: doctor.name_ar,
+      value: doctor.id,
+    }));
+  }, [doctors]);
+
+  // Memoize the clinic options
+  const clinicOptions = useMemo(() => {
+    return clinics.map((clinic) => ({
+      label: clinic.name,
+      value: clinic.id,
+    }));
+  }, [clinics]);
 
   useEffect(() => {
     if (pb.authStore.isValid) {
@@ -69,6 +85,7 @@ export default memo(function AddToQueue() {
         messageApi.error('المريض متسجل قبل كدة');
     }
   };
+
   useEffect(() => {
     form.setFieldValue('status', mode);
   }, [mode]);
@@ -137,10 +154,7 @@ export default memo(function AddToQueue() {
             <Selector
               showCheckMark={false}
               columns={2}
-              options={doctors.map((doctor) => ({
-                label: doctor.name_ar,
-                value: doctor.id,
-              }))}
+              options={doctorOptions}
               value={[doctorValue]}
               onChange={(v) => {
                 if (v.length) {
@@ -161,10 +175,7 @@ export default memo(function AddToQueue() {
             <Selector
               showCheckMark={false}
               columns={2}
-              options={clinics.map((doctor) => ({
-                label: doctor.name,
-                value: doctor.id,
-              }))}
+              options={clinicOptions}
               value={[clinicValue]}
               onChange={(v) => {
                 if (v.length) {
