@@ -6,8 +6,8 @@ import {
 } from '@ant-design/icons';
 import { Button, message, Tag } from 'antd';
 import pb from '../lib/pocketbase';
-import { memo, useCallback, useState } from 'react';
-import { motion } from 'framer-motion';
+import { memo, useCallback, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import NewPatientModal from './NewPatientModal';
 import { useNewPatientModal } from '../stores/patientStore';
 import { Dialog } from 'antd-mobile';
@@ -49,8 +49,10 @@ const QueueCard = memo(function QueueCard({ data, index }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
-  // Get updateHandler from the store at component initialization
   const updateHandler = useFullQueue((state) => state.updateHandler);
+
+  // Use data.status directly instead of local state
+  // This ensures the card's appearance matches its actual location
 
   const handleDelete = useCallback(async () => {
     try {
@@ -66,13 +68,17 @@ const QueueCard = memo(function QueueCard({ data, index }) {
   const handleStatusChange = useCallback(async () => {
     try {
       setLoading(true);
+      // Calculate the new status based on current data.status
+      const newStatus =
+        data.status === QUEUE_STATUSES.WAITLIST
+          ? QUEUE_STATUSES.BOOKING
+          : QUEUE_STATUSES.WAITLIST;
+
+      // Update the database first
       const updatedRecord = await pb.collection('queue').update(
         data.id,
         {
-          status:
-            data.status === QUEUE_STATUSES.WAITLIST
-              ? QUEUE_STATUSES.BOOKING
-              : QUEUE_STATUSES.WAITLIST,
+          status: newStatus,
         },
         {
           fields:
@@ -80,14 +86,14 @@ const QueueCard = memo(function QueueCard({ data, index }) {
         }
       );
 
-      // Use the updateHandler from props instead of getting it from the store again
+      // Then update the store with the response from the server
       updateHandler(updatedRecord);
     } catch (error) {
       showErrorMessage();
     } finally {
       setLoading(false);
     }
-  }, [data.id, data.status, updateHandler]); // Add updateHandler to dependencies
+  }, [data.id, data.status, updateHandler]);
 
   // Rest of the component remains the same
   const showDeleteConfirmation = () => {
@@ -132,6 +138,7 @@ const QueueCard = memo(function QueueCard({ data, index }) {
       ],
     });
   };
+
   // Memoize the action button icon function
   const getActionButtonIcon = useCallback(() => {
     if (data.name.length === 0) {
@@ -143,6 +150,7 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     }
     return <PlusOutlined />;
   }, [data.name.length, data.status]);
+
   // Memoize the action button click handler
   const handleActionButtonClick = useCallback(
     () =>
@@ -151,6 +159,7 @@ const QueueCard = memo(function QueueCard({ data, index }) {
         : handleStatusChange(),
     [data.name.length, setIsModalOpen, handleStatusChange]
   );
+
   // In the getName function, add memoization
   const getName = useCallback(() => {
     const name =
@@ -161,14 +170,15 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     const nameParts = name.split(' ');
     return nameParts.slice(0, 3).join(' ');
   }, [data.name, data.expand?.patient?.name]);
+
   return (
     <>
       <NewPatientModal data={data} />
       <motion.div
         className={`queue-card-wrapper ${data.status === QUEUE_STATUSES.BOOKING ? '' : 'reverse'}`}
         variants={cardVariants}
-        // Remove layoutId, initial, animate, custom, and transition props
-        // as they're now controlled by the parent container
+        layout
+        layoutId={`card-${data.id}`}
         exit={{
           opacity: 0,
           scale: 0.9,
