@@ -4,7 +4,7 @@ import BookingsCard from './BookingsCard';
 import QueueCard from './QueueCard';
 import { AnimatePresence, motion } from 'framer-motion';
 
-// Animation variants similar to Waitlist component
+// Enhanced animation variants with staggering
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -12,7 +12,12 @@ const containerVariants = {
     transition: {
       staggerChildren: 0.1,
       delayChildren: 0.2,
+      when: 'beforeChildren',
     },
+  },
+  exit: {
+    opacity: 0,
+    transition: { staggerChildren: 0.05, staggerDirection: -1 },
   },
 };
 
@@ -48,6 +53,7 @@ export default memo(function Bookings() {
           className="cards-wrapper"
           initial="hidden"
           animate="visible"
+          exit="exit"
           variants={containerVariants}
         >
           <AnimatePresence mode="popLayout">

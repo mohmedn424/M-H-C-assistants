@@ -16,6 +16,26 @@ import { useFullQueue } from '../stores/queueStore';
 const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
 const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
 
+// Animation variants for card items
+const cardVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 100,
+      damping: 12,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: { duration: 0.2 },
+  },
+};
+
 const showErrorMessage = () => {
   message.error({
     content: (
@@ -34,7 +54,7 @@ const showErrorMessage = () => {
     ),
   });
 };
-const QueueCard = memo(function QueueCard({ data }) {
+const QueueCard = memo(function QueueCard({ data, index }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
@@ -137,6 +157,11 @@ const QueueCard = memo(function QueueCard({ data }) {
       <motion.div
         layoutId={data.id}
         className={`queue-card-wrapper ${data.status === QUEUE_STATUSES.BOOKING ? '' : 'reverse'}`}
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        custom={index}
       >
         <div className="left">
           <h2
