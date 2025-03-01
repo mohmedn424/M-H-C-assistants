@@ -11,6 +11,7 @@ import {
   useDoctorValue,
   useSelectedDoctor,
 } from '../../stores/userStore';
+import { useAppHeight } from '../../hooks/useAppHeight';
 
 /**
  * Login page component for user authentication
@@ -23,6 +24,9 @@ export default function LoginPage() {
   const { setClinicValues } = useClinicValue();
   const { setDoctorValues } = useDoctorValue();
   const { setSelectedDoctor } = useSelectedDoctor();
+
+  // Use the custom hook to handle app height
+  useAppHeight();
 
   // Memoize login handler to prevent recreation on each render
   const loginHandler = useCallback(

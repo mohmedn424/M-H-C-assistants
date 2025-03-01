@@ -7,12 +7,17 @@ import {
   useFloatingPanelState,
 } from '../stores/userStore';
 import Floating from './Floating';
+import { useAppHeight } from '../hooks/useAppHeight';
+import PullToRefresh from './PullToRefresh';
 
 export default memo(function CommonLayout({ children }) {
   const { path, setPath, setFullPath } = useCurrentRoute();
   const router = useRouterState();
   const { closeFloat, isFloatOpen } = useFloatingPanelState();
   const navigate = useNavigate();
+
+  // Use the app height hook to handle mobile keyboard adjustments
+  useAppHeight();
 
   // Memoize route update logic
   useEffect(() => {
@@ -67,7 +72,7 @@ export default memo(function CommonLayout({ children }) {
     <Layout className="main-app-container">
       <div className="container" style={{ overflowY: 'auto' }}>
         <div onClick={closeFloat} className={overlayClassName} />
-        {children}
+        <PullToRefresh>{children}</PullToRefresh>
       </div>
 
       <Floating />

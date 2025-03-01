@@ -13,7 +13,10 @@ import CommonLayout from '../components/CommonLayout';
 import pb from '../lib/pocketbase';
 import { fetchQueueLogic } from '../stores/queueStore';
 import { useAuthStore } from '../stores/authStore';
-import { useClinicValue } from '../stores/userStore';
+import {
+  useClinicValue,
+  useSelectedDoctor,
+} from '../stores/userStore';
 
 // Initialize gradient outside component to prevent recreation
 const gradient = new Gradient();
@@ -21,7 +24,7 @@ const gradient = new Gradient();
 // Auth refresh configuration
 const AUTH_REFRESH_CONFIG = {
   fields:
-    'record.id,record.avatar,record.gender,record.name,record.verified,token,record.expand.doctors.id,record.expand.doctors.name_ar,record.expand.clinics.id,record.expand.clinics.name',
+    'record.id,record.avatar,record.gender,record.name,record.verified,token,record.expand.doctors.id,record.expand.doctors.name_ar,record.expand.doctors.name,record.expand.clinics.id,record.expand.clinics.name,record.expand.clinics.doctors',
   expand: 'doctors,clinics',
 };
 
@@ -50,7 +53,7 @@ function RootComponent() {
   const navigate = useNavigate();
   const router = useRouterState();
   const { setClinicValues } = useClinicValue();
-
+  const { setSelectedDoctor } = useSelectedDoctor();
   // Check if current route is login page
   const isLoginPage = router.location.pathname === '/login';
 
@@ -69,9 +72,23 @@ function RootComponent() {
 
           // Set default clinic filter if available
           if (authData?.record?.expand?.clinics?.length > 0) {
-            const defaultClinic =
-              authData.record.expand.clinics[0].id;
-            setClinicValues([defaultClinic]);
+            const defaultClinic = authData.record.expand.clinics[0];
+            setClinicValues([defaultClinic.id]);
+
+            // Also set the selected doctor if the clinic has multiple doctors
+            if (
+              defaultClinic.doctors &&
+              defaultClinic.doctors.length > 0
+            ) {
+              const clinicDoctors =
+                authData.record.expand.doctors.filter((doctor) =>
+                  defaultClinic.doctors.includes(doctor.id)
+                );
+
+              if (clinicDoctors.length > 0) {
+                setSelectedDoctor(clinicDoctors[0].id); // Use the hook directly
+              }
+            }
           }
         }
       } catch (error) {
@@ -85,7 +102,7 @@ function RootComponent() {
 
     // Cleanup gradient on unmount
     return () => gradient.pause();
-  }, [setClinicValues]);
+  }, [setClinicValues, setSelectedDoctor]); // Add setSelectedDoctor to dependencies
 
   // Handle data fetching when authentication state changes
   React.useEffect(() => {

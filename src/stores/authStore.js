@@ -1,4 +1,5 @@
-import create from 'zustand';
+import { create } from 'zustand';
+
 import pb from '../lib/pocketbase';
 
 export const useAuthStore = create((set) => ({

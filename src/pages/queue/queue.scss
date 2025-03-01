@@ -110,7 +110,24 @@
 }
 .queue-header {
   font-family: 'Tajawal', sans-serif;
-  padding: 8px; // Reduce padding
+  padding: 8px;
+
+  .queue-header-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .button-container {
+    position: relative;
+    width: 100%;
+
+    &:active .filter-badge {
+      transform: scale(0.99); /* More subtle scale for badge */
+    }
+  }
+
   .filter-button {
     width: 100%;
     padding: 8px;
@@ -120,14 +137,58 @@
     font-size: 1rem;
     font-weight: 500;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
+    transition: all 0.15s ease; /* Faster transition */
     border: none;
-
     &:active {
-      transform: scale(0.98);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      transform: scale(0.99); /* More subtle scale */
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* Lighter shadow */
     }
   }
+
+  .filter-badge {
+    position: absolute;
+    top: -5px;
+    left: -2px;
+    z-index: 10;
+    transition: all 0.15s ease; /* Match button transition */
+    pointer-events: none;
+  }
+  &:active .filter-badge {
+    transform: scale(
+      0.98
+    ); /* Match the button's transform on active */
+  }
+}
+
+.filter-button {
+  width: 100%;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--adm-color-primary);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  border: none;
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.filter-badge {
+  position: absolute;
+  top: -5px;
+  left: -2px;
+  z-index: 10;
+  transition: all 0.2s ease; /* Add transition to match button */
+  pointer-events: none; /* Make sure clicks pass through to the button */
+}
+
+.refresh-button {
+  padding: 4px 8px;
+  flex-shrink: 0;
 }
 .filter-popup {
   padding: 2rem 1.5rem;
@@ -164,6 +225,10 @@
     background: rgba(var(--adm-color-primary-rgb), 0.05);
     border: 1px solid rgba(var(--adm-color-primary-rgb), 0.1);
     transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
     &:hover {
       background: rgba(var(--adm-color-primary-rgb), 0.1);
@@ -178,9 +243,26 @@
     }
   }
 
+  .radio-with-badge {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .radio-badge {
+    margin-right: 8px;
+    margin-left: auto;
+  }
+
   .adm-radio {
     gap: 1.2em;
     font-size: 1.1rem;
+
+    &-content {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
 
     &-checked {
       .clinic-radio {

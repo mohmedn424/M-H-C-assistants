@@ -46,6 +46,9 @@ $z-idle: 99999;
   background: transparent;
 }
 
+:root {
+  --app-height: 100vh;
+}
 * {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
@@ -118,53 +121,11 @@ $z-idle: 99999;
     transform: translatey(0px);
   }
 }
-
-// Idle overlay
-.idle-overlay {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  z-index: $z-idle !important;
-  width: 100dvw;
-  height: 100dvh;
-  background-color: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px); // Safari support
-  user-select: none;
-  pointer-events: none;
-  opacity: 0;
-  transition: $idle-transition;
-  display: grid;
-  place-items: center;
-
-  .container {
-    margin: auto;
-    width: max-content;
-    height: max-content;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1em;
-
-    img {
-      width: min(500px, 80vw); // Responsive width
-      border-radius: 50%;
-      border: 5px solid white;
-      animation: $float-animation;
-      will-change: transform; // Performance optimization
-    }
-
-    h1 {
-      color: white;
-      font-family: $primary-font;
-      font-size: clamp(2em, 8vw, 4em); // Responsive font size
-      text-align: center;
-    }
-  }
-
-  &-on {
-    opacity: 1;
+.adm-pull-to-refresh {
+  touch-action: none;
+  .adm-pull-to-refresh-head-content {
+    color: white;
+    font-weight: 500;
   }
 }
 

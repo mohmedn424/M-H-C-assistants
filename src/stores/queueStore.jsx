@@ -8,17 +8,41 @@ const QUEUE_STATUS = {
   BOOKING: 'booking',
 };
 
-// Helper function for sorting by creation date
-const sortByCreationDate = (a, b) =>
-  new Date(a.created) - new Date(b.created);
+// Optimized sorting function with memoization
+const createDateCache = new Map();
+const sortByCreationDate = (a, b) => {
+  // Use cached date values if available
+  if (!createDateCache.has(a.id)) {
+    createDateCache.set(a.id, new Date(a.created).getTime());
+  }
+  if (!createDateCache.has(b.id)) {
+    createDateCache.set(b.id, new Date(b.created).getTime());
+  }
+  return createDateCache.get(a.id) - createDateCache.get(b.id);
+};
+
+// Clear cache when it gets too large (prevent memory leaks)
+const clearCacheIfNeeded = () => {
+  if (createDateCache.size > 1000) {
+    createDateCache.clear();
+  }
+};
 
 // Waitlist store with error handling
 export const useWaitlist = create((set) => ({
   waitlist: [],
   setWaitlist: (newVal) => {
     try {
-      const sorted = [...newVal].sort(sortByCreationDate);
+      // Skip sorting for single item arrays
+      if (newVal.length <= 1) {
+        set({ waitlist: newVal });
+        return;
+      }
+
+      // Use slice for better performance than spread
+      const sorted = newVal.slice().sort(sortByCreationDate);
       set({ waitlist: sorted });
+      clearCacheIfNeeded();
     } catch (error) {
       console.error('Failed to update waitlist:', error);
       // Maintain previous state on error
@@ -32,8 +56,16 @@ export const useBookings = create((set) => ({
   bookings: [],
   setBookings: (newVal) => {
     try {
-      const sorted = [...newVal].sort(sortByCreationDate);
+      // Skip sorting for single item arrays
+      if (newVal.length <= 1) {
+        set({ bookings: newVal });
+        return;
+      }
+
+      // Use slice for better performance than spread
+      const sorted = newVal.slice().sort(sortByCreationDate);
       set({ bookings: sorted });
+      clearCacheIfNeeded();
     } catch (error) {
       console.error('Failed to update bookings:', error);
       // Maintain previous state on error
@@ -48,18 +80,36 @@ export const useQueueModalState = create((set) => ({
   setMode: (newval) => set({ mode: newval }),
 }));
 
+// Debounce helper to prevent rapid consecutive updates
+let updateTimer = null;
+const debounceUpdate = (fn, delay = 50) => {
+  if (updateTimer) clearTimeout(updateTimer);
+  updateTimer = setTimeout(fn, delay);
+};
+
 // Main queue store with optimized methods
 export const useFullQueue = create((set, get) => ({
   fullQueue: [],
   isLoading: false,
   error: null,
+  lastUpdateId: '', // Track last updated record ID
 
   // Set the full queue and filter by selected doctor
   setFullQueue: async (newval) => {
     try {
+      // Skip update if data is identical (length and first/last items)
+      const currentQueue = get().fullQueue;
+      if (
+        currentQueue.length === newval.length &&
+        currentQueue.length > 0 &&
+        currentQueue[0].id === newval[0].id &&
+        currentQueue[currentQueue.length - 1].id ===
+          newval[newval.length - 1].id
+      ) {
+        return;
+      }
+
       set({ isLoading: true, error: null });
-      const selectedDoctor =
-        useSelectedDoctor.getState().selectedDoctor;
 
       // Store the full queue
       set({ fullQueue: newval });
@@ -83,20 +133,32 @@ export const useFullQueue = create((set, get) => ({
       const clinicValue = useClinicValue.getState().clinicValue;
 
       // Early return if no data to process
-      if (!selectedDoctor || !fullQueue.length) {
+      if (!fullQueue.length) {
+        // Clear both lists when there's no data
+        useWaitlist.getState().setWaitlist([]);
+        useBookings.getState().setBookings([]);
         return;
       }
 
-      // Process data in a single pass
+      // Pre-allocate arrays with estimated capacity
       const waitlistItems = [];
       const bookingItems = [];
 
-      fullQueue.forEach((item) => {
+      // Optimize filtering with pre-checks
+      const hasClinicFilter = clinicValue.length > 0;
+      const clinicId = hasClinicFilter ? clinicValue[0] : null;
+
+      // Process data in a single optimized pass
+      for (let i = 0; i < fullQueue.length; i++) {
+        const item = fullQueue[i];
+
+        // Skip items without doctor data
+        if (!item?.expand?.doctor) continue;
+
         const matchesDoctor =
-          item?.expand?.doctor?.id === selectedDoctor;
+          !selectedDoctor || item.expand.doctor.id === selectedDoctor;
         const matchesClinic =
-          !clinicValue.length ||
-          item?.expand?.clinic?.id === clinicValue[0];
+          !hasClinicFilter || item?.expand?.clinic?.id === clinicId;
 
         if (matchesDoctor && matchesClinic) {
           if (item.status === QUEUE_STATUS.WAITLIST) {
@@ -105,16 +167,15 @@ export const useFullQueue = create((set, get) => ({
             bookingItems.push(item);
           }
         }
-      });
+      }
 
-      // Update both states at once for better performance
+      // Update both states concurrently for better performance
       await Promise.all([
         useWaitlist.getState().setWaitlist(waitlistItems),
         useBookings.getState().setBookings(bookingItems),
       ]);
     } catch (error) {
       console.error('Update failed:', error);
-      throw error;
     }
   },
 
@@ -123,18 +184,19 @@ export const useFullQueue = create((set, get) => ({
     try {
       const { fullQueue } = get();
 
-      // Check if the item exists in our local state first
-      const itemExists = fullQueue.find((item) => item.id === id);
-      if (!itemExists) {
+      // Find item index for more efficient removal
+      const itemIndex = fullQueue.findIndex((item) => item.id === id);
+      if (itemIndex === -1) {
         return; // Skip if already deleted
       }
 
       // Optimistic update - update local state first
-      const newQueue = fullQueue.filter((item) => item.id !== id);
-      set({ fullQueue: newQueue });
+      const newQueue = fullQueue.slice();
+      newQueue.splice(itemIndex, 1); // More efficient than filter
+      set({ fullQueue: newQueue, lastUpdateId: id });
 
       // Update filtered lists
-      await get().updater();
+      get().updater();
 
       // Then delete from PocketBase
       await pb.collection('queue').delete(id);
@@ -142,119 +204,165 @@ export const useFullQueue = create((set, get) => ({
       // Only log non-404 errors
       if (error.status !== 404) {
         console.error('Failed to delete queue item:', error);
-        throw error;
       }
     }
   },
 
   // Create handler with optimistic updates
   createHandler: (record) => {
-    const { fullQueue, updater } = get();
+    const { fullQueue } = get();
+
+    // Skip if record already exists
+    if (fullQueue.some((item) => item.id === record.id)) {
+      return;
+    }
 
     // Update local state
-    set({ fullQueue: [...fullQueue, record] });
+    set({
+      fullQueue: [...fullQueue, record],
+      lastUpdateId: record.id,
+    });
 
-    // Update filtered lists
-    updater();
+    // Update filtered lists immediately
+    get().updater();
   },
 
   // Update handler with optimistic updates - MODIFIED FOR IMMEDIATE UPDATES
   updateHandler: (record) => {
-    const { fullQueue } = get();
+    const { fullQueue, lastUpdateId } = get();
+
+    // Skip duplicate rapid updates to the same record
+    if (lastUpdateId === record.id) {
+      debounceUpdate(() => {
+        get().updateHandler(record);
+      }, 100);
+      return;
+    }
+
     const selectedDoctor =
       useSelectedDoctor.getState().selectedDoctor;
     const clinicValue = useClinicValue.getState().clinicValue;
 
-    // Update local state
-    const updatedQueue = fullQueue.map((item) =>
-      item.id === record.id ? record : item
+    // Find item index for more efficient updates
+    const itemIndex = fullQueue.findIndex(
+      (item) => item.id === record.id
     );
 
-    set({ fullQueue: updatedQueue });
+    // Update local state efficiently
+    let updatedQueue;
+    if (itemIndex !== -1) {
+      updatedQueue = fullQueue.slice();
+      updatedQueue[itemIndex] = record;
+    } else {
+      updatedQueue = [...fullQueue, record];
+    }
 
-    // Direct update to the appropriate list based on the record's status
+    set({ fullQueue: updatedQueue, lastUpdateId: record.id });
+
+    // Optimize filtering with pre-checks
+    const hasClinicFilter = clinicValue.length > 0;
+    const clinicId = hasClinicFilter ? clinicValue[0] : null;
+
+    // Check if record matches current filters
     const matchesDoctor =
+      !selectedDoctor ||
       record?.expand?.doctor?.id === selectedDoctor;
     const matchesClinic =
-      !clinicValue.length ||
-      record?.expand?.clinic?.id === clinicValue[0];
+      !hasClinicFilter || record?.expand?.clinic?.id === clinicId;
 
     if (matchesDoctor && matchesClinic) {
+      // Direct update to the appropriate list for immediate UI feedback
       if (record.status === QUEUE_STATUS.WAITLIST) {
-        // Update waitlist directly
-        const currentWaitlist = useWaitlist.getState().waitlist;
+        const waitlistState = useWaitlist.getState();
+        const currentWaitlist = waitlistState.waitlist;
         const existingIndex = currentWaitlist.findIndex(
           (item) => item.id === record.id
         );
 
         if (existingIndex >= 0) {
-          // Update existing item
-          const newWaitlist = [...currentWaitlist];
+          // Update existing item efficiently
+          const newWaitlist = currentWaitlist.slice();
           newWaitlist[existingIndex] = record;
-          useWaitlist.getState().setWaitlist(newWaitlist);
+          waitlistState.setWaitlist(newWaitlist);
         } else {
-          // Add new item to waitlist and remove from bookings
-          useWaitlist
-            .getState()
-            .setWaitlist([...currentWaitlist, record]);
-          const currentBookings = useBookings.getState().bookings;
-          useBookings
-            .getState()
-            .setBookings(
-              currentBookings.filter((item) => item.id !== record.id)
-            );
+          // Add to waitlist and remove from bookings if present
+          waitlistState.setWaitlist([...currentWaitlist, record]);
+
+          const bookingsState = useBookings.getState();
+          const currentBookings = bookingsState.bookings;
+          const bookingIndex = currentBookings.findIndex(
+            (item) => item.id === record.id
+          );
+
+          if (bookingIndex >= 0) {
+            const newBookings = currentBookings.slice();
+            newBookings.splice(bookingIndex, 1);
+            bookingsState.setBookings(newBookings);
+          }
         }
       } else if (record.status === QUEUE_STATUS.BOOKING) {
-        // Update bookings directly
-        const currentBookings = useBookings.getState().bookings;
+        const bookingsState = useBookings.getState();
+        const currentBookings = bookingsState.bookings;
         const existingIndex = currentBookings.findIndex(
           (item) => item.id === record.id
         );
 
         if (existingIndex >= 0) {
-          // Update existing item
-          const newBookings = [...currentBookings];
+          // Update existing item efficiently
+          const newBookings = currentBookings.slice();
           newBookings[existingIndex] = record;
-          useBookings.getState().setBookings(newBookings);
+          bookingsState.setBookings(newBookings);
         } else {
-          // Add new item to bookings and remove from waitlist
-          useBookings
-            .getState()
-            .setBookings([...currentBookings, record]);
-          const currentWaitlist = useWaitlist.getState().waitlist;
-          useWaitlist
-            .getState()
-            .setWaitlist(
-              currentWaitlist.filter((item) => item.id !== record.id)
-            );
+          // Add to bookings and remove from waitlist if present
+          bookingsState.setBookings([...currentBookings, record]);
+
+          const waitlistState = useWaitlist.getState();
+          const currentWaitlist = waitlistState.waitlist;
+          const waitlistIndex = currentWaitlist.findIndex(
+            (item) => item.id === record.id
+          );
+
+          if (waitlistIndex >= 0) {
+            const newWaitlist = currentWaitlist.slice();
+            newWaitlist.splice(waitlistIndex, 1);
+            waitlistState.setWaitlist(newWaitlist);
+          }
         }
       }
     }
 
-    // Still run the updater for consistency, but after the direct updates
-    setTimeout(() => get().updater(), 50);
+    // Run the updater to ensure consistency
+    get().updater();
   },
 }));
 
-// Queue fetch options
-export const queueFetchOptions = {
+// Queue fetch options - use a frozen object to prevent recreation
+export const queueFetchOptions = Object.freeze({
   sort: '-created',
   expand: 'patient,doctor,clinic,assistant',
   fields:
     'id,name,created,status,type,notes,expand.patient.id,expand.patient.name,expand.doctor.id,expand.doctor.name,expand.clinic.id',
-};
+});
+
+// Prevent multiple simultaneous fetches
+let fetchInProgress = false;
 
 // Fetch queue logic
 export const fetchQueueLogic = async () => {
-  const { setFullQueue } = useFullQueue.getState();
+  // Prevent multiple simultaneous fetches
+  if (fetchInProgress) return;
+
+  fetchInProgress = true;
 
   try {
+    const { setFullQueue } = useFullQueue.getState();
     const records = await pb
       .collection('queue')
       .getFullList(queueFetchOptions);
     await setFullQueue(records);
   } catch (error) {
     console.error('Failed to fetch queue:', error);
-    throw error;
+  } finally {
+    fetchInProgress = false;
   }
 };
