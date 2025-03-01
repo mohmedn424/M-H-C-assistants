@@ -56,6 +56,35 @@ export default defineConfig(({ mode }) => ({
         skipWaiting: true,
         // Add API endpoint for your backend
         runtimeCaching: [
+          // Use NetworkFirst for JS and CSS files to ensure latest code
+          {
+            urlPattern: /\.(?:js|css)$/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'code-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+              },
+              networkTimeoutSeconds: 5,
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          // Use NetworkFirst for HTML files
+          {
+            urlPattern: /\.html$/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+              },
+              networkTimeoutSeconds: 5,
+            },
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
@@ -163,6 +192,7 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     open: true,
   },
+  // Removed the define section that was causing the error
   // Optimize asset handling
   optimizeDeps: {
     include: [

@@ -1,10 +1,12 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { PullToRefresh as AntdPullToRefresh } from 'antd-mobile';
 import { fetchQueueLogic } from '../stores/queueStore';
 import { message } from 'antd';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 const PullToRefresh = ({ children }) => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // Get the update service worker function from the PWA hook with proper destructuring
   const {
     needRefresh: [needRefresh, closeNeedRefresh],
@@ -22,42 +24,61 @@ const PullToRefresh = ({ children }) => {
 
   // Force check for updates when pulling to refresh
   const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return false;
+
+    setIsRefreshing(true);
     try {
       // First, check for content updates
       await fetchQueueLogic();
 
-      // Force check for PWA updates
-      await registerSW(true);
+      // Try to update content first
+      let contentUpdated = true;
 
-      // Small delay to allow update check to complete
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // Then check for PWA updates - handle potential errors separately
+      try {
+        // Force check for PWA updates
+        await registerSW(true);
 
-      // Then apply update if available
-      if (needRefresh) {
-        await updateServiceWorker(true);
-        if (closeNeedRefresh) closeNeedRefresh();
-        message.success('تم تحديث التطبيق والمحتوى');
-      } else {
-        // Try one more time with direct update
-        const updated = await updateServiceWorker(true);
-        if (updated) {
-          message.success('تم تحديث التطبيق والمحتوى');
-        } else {
-          message.success('تم التحديث');
+        // Small delay to allow update check to complete
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Then apply update if available
+        if (needRefresh) {
+          const updated = await updateServiceWorker(true);
+          if (closeNeedRefresh) closeNeedRefresh();
+          if (updated) {
+            message.success('تم تحديث التطبيق والمحتوى');
+            return true;
+          }
         }
+      } catch (pwaError) {
+        console.log(
+          'PWA update check error (non-critical):',
+          pwaError
+        );
+        // Continue with content update even if PWA update fails
       }
 
-      return true;
+      // If we got here, at least the content was updated
+      if (contentUpdated) {
+        message.success('تم التحديث');
+        return true;
+      }
+
+      return false;
     } catch (error) {
       console.error('Error refreshing content:', error);
       message.error('فشل التحديث');
       return false;
+    } finally {
+      setIsRefreshing(false);
     }
   }, [
     updateServiceWorker,
     needRefresh,
     closeNeedRefresh,
     registerSW,
+    isRefreshing,
   ]);
 
   return (
@@ -70,7 +91,7 @@ const PullToRefresh = ({ children }) => {
             : 'اسحب لتحت عشان تحدث',
           canRelease: 'سيب عشان تحدث',
           refreshing: 'بيحدث...',
-          complete: needRefresh ? 'تم تحديث التطبيق' : 'تم التحديث',
+          complete: 'تم التحديث',
         }[status];
       }}
       style={{
