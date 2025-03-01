@@ -10,6 +10,7 @@ import { useEffect, useCallback, memo } from 'react';
 import deleteSound from './assets/notification.mp3';
 import { Helmet } from 'react-helmet';
 import ReloadPrompt from './components/ReloadPrompt';
+import PerformanceOptimizer from './components/PerformanceOptimizer';
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -99,6 +100,7 @@ function App() {
   return (
     <>
       <MetaTags />
+      <PerformanceOptimizer />
       <RouterProvider router={router} />
       <ReloadPrompt />
     </>
