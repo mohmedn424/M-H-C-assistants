@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { compression } from 'vite-plugin-compression2';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -12,13 +13,17 @@ export default defineConfig(({ mode }) => ({
       fastRefresh: true,
     }),
     VitePWA({
-      // Change to prompt for immediate updates
-      registerType: 'prompt',
+      // Change to autoUpdate for better experience
+      registerType: 'autoUpdate',
       // Enable dev mode for faster updates during development
       devOptions: {
         enabled: true,
         type: 'module',
+        navigateFallback: 'index.html',
       },
+      // Use generateSW instead of injectManifest for simpler setup
+      strategies: 'generateSW',
+      // Remove the problematic injectManifest configuration
       includeAssets: [
         'favicon.ico',
         'apple-touch-icon.png',
@@ -31,6 +36,7 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
+        version: '1.0.0', // Add explicit version
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -54,6 +60,8 @@ export default defineConfig(({ mode }) => ({
         // Enable these for immediate updates
         clientsClaim: true,
         skipWaiting: true,
+        // Changed from buildId to cacheId with timestamp to force cache invalidation
+        cacheId: `mhc-assistant-${new Date().toISOString()}`,
         // Add API endpoint for your backend
         runtimeCaching: [
           // Use NetworkFirst for JS and CSS files to ensure latest code
@@ -186,13 +194,17 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: true,
     },
+    // Add proper MIME type handling
+    headers: {
+      'Service-Worker-Allowed': '/',
+      'Access-Control-Allow-Origin': '*',
+    },
   },
   preview: {
     port: 4173,
     strictPort: true,
     open: true,
   },
-  // Removed the define section that was causing the error
   // Optimize asset handling
   optimizeDeps: {
     include: [
@@ -206,3 +218,4 @@ export default defineConfig(({ mode }) => ({
     ],
   },
 }));
+s;
