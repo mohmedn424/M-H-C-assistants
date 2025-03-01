@@ -26,7 +26,9 @@ function PerformanceOptimizer() {
       document
         .querySelectorAll('img[data-priority="high"]')
         .forEach((img) => {
-          img.fetchPriority = 'high';
+          if ('fetchPriority' in img) {
+            img.fetchPriority = 'high';
+          }
           img.loading = 'eager';
         });
     };
@@ -44,8 +46,31 @@ function PerformanceOptimizer() {
         });
     };
 
+    // Preload critical assets
+    const preloadAssets = () => {
+      const criticalAssets = [
+        { url: '/logo.svg', type: 'image' },
+        {
+          url: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+          type: 'style',
+        },
+      ];
+
+      criticalAssets.forEach((asset) => {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.href = asset.url;
+        link.as = asset.type;
+        if (asset.type !== 'style') {
+          link.crossOrigin = 'anonymous';
+        }
+        document.head.appendChild(link);
+      });
+    };
+
     // Run optimizations
     optimizeLCP();
+    preloadAssets();
 
     // Run CLS optimization after content loads
     if (document.readyState === 'complete') {
