@@ -9,9 +9,10 @@ import {
 import { useWaitlist } from '../stores/queueStore';
 import QueueCard from './QueueCard';
 import WaitListCard from './WaitListCard';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FixedSizeList as List } from 'react-window';
 import { useWindowSize } from '../hooks/useWindowSize';
+import EmptyList from './EmptyList';
 
 // Simplified animation variants with better performance
 const containerVariants = {
@@ -125,11 +126,7 @@ export default memo(function Waitlist() {
   // Memoize the list component to prevent unnecessary re-renders
   const VirtualList = useMemo(() => {
     if (waitlist.length === 0) {
-      return (
-        <div className="empty-list">
-          لا يوجد مرضى في قائمة الانتظار
-        </div>
-      );
+      return <EmptyList message="لا يوجد مرضى في قائمة الانتظار" />;
     }
 
     return (
@@ -165,7 +162,7 @@ export default memo(function Waitlist() {
           exit="exit"
           variants={containerVariants}
         >
-          {VirtualList}
+          <AnimatePresence mode="wait">{VirtualList}</AnimatePresence>
         </motion.div>
       </div>
     </>

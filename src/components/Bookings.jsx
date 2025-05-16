@@ -3,6 +3,7 @@ import { useBookings } from '../stores/queueStore';
 import BookingsCard from './BookingsCard';
 import QueueCard from './QueueCard';
 import { AnimatePresence, motion } from 'framer-motion';
+import EmptyList from './EmptyList';
 
 // Simplified animation variants for better performance
 const containerVariants = {
@@ -65,15 +66,7 @@ export default memo(function Bookings() {
         >
           <AnimatePresence mode="wait">
             {bookings.length === 0 ? (
-              <motion.div
-                key="empty"
-                className="empty-list"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                لا يوجد حجوزات
-              </motion.div>
+              <EmptyList message="لا يوجد حجوزات" />
             ) : (
               bookings.map((item, index) => {
                 // Create composite key using both id and status
