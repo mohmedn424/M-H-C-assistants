@@ -1,6 +1,26 @@
 import { memo } from 'react';
-import { Empty } from 'antd';
 import { motion } from 'framer-motion';
+
+// Animation variants with smoother transitions - matching QueueCard animations
+const emptyVariants = {
+  hidden: { opacity: 0, y: 10, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 20,
+      mass: 0.8,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    transition: { duration: 0.1 },
+  },
+};
 
 const EmptyList = memo(function EmptyList({
   message = 'لا يوجد بيانات',
@@ -8,37 +28,27 @@ const EmptyList = memo(function EmptyList({
   return (
     <motion.div
       key="empty"
-      className="empty-list"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      className="queue-card-wrapper"
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={emptyVariants}
       style={{
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem',
-        textAlign: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: '12px',
-        margin: '1rem',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        margin: '0 1em',
+        borderRadius: '16px',
+        direction: 'rtl',
+        userSelect: 'none',
+        minHeight: '80px', // Match minimum height of patient cards
+        padding: '20px', // Match padding of queue-card-wrapper
       }}
     >
-      <Empty
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-        description={
-          <span
-            style={{
-              color: 'white',
-              fontSize: '1.2rem',
-              fontWeight: 'bold',
-            }}
-          >
-            {message}
-          </span>
-        }
-      />
+      <div className="left" style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: '1.5em', margin: 0 }}>{message}</h2>
+      </div>
     </motion.div>
   );
 });
