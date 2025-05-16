@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons';
 import { Button, message, Tag } from 'antd';
 import pb from '../lib/pocketbase';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import NewPatientModal from './NewPatientModal';
 import { useNewPatientModal } from '../stores/patientStore';
@@ -14,7 +14,7 @@ import { Dialog } from 'antd-mobile';
 import { useFullQueue } from '../stores/queueStore';
 
 const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
-const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'consultation' };
+const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'follow' };
 
 // Animation variants for card items
 const cardVariants = {
@@ -27,13 +27,13 @@ const cardVariants = {
       type: 'spring',
       stiffness: 200,
       damping: 10,
-      delay: index * 0.1, // Small delay for staggered effect
+      delay: index * 0.05, // Reduced delay for faster rendering
     },
   }),
   exit: {
     opacity: 0,
     scale: 0.9,
-    transition: { duration: 0.2 },
+    transition: { duration: 0.15 }, // Faster exit animation
   },
 };
 
@@ -55,25 +55,39 @@ const showErrorMessage = () => {
     ),
   });
 };
+
 const QueueCard = memo(function QueueCard({ data, index }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
+  const operationInProgressRef = useRef(false);
 
   const handleDelete = useCallback(async () => {
+    if (operationInProgressRef.current) return;
+
     try {
+      operationInProgressRef.current = true;
       setLoading(true);
       await deleteHandler(data.id);
     } catch (error) {
       showErrorMessage();
     } finally {
       setLoading(false);
+      // Add small delay before allowing new operations
+      setTimeout(() => {
+        operationInProgressRef.current = false;
+      }, 300);
     }
   }, [data.id, deleteHandler]);
 
   const handleStatusChange = useCallback(async () => {
+    if (operationInProgressRef.current) return;
+
     try {
+      operationInProgressRef.current = true;
       setLoading(true);
+
+      // Optimistic UI update - handled by store
       await pb.collection('queue').update(
         data.id,
         {
@@ -88,6 +102,10 @@ const QueueCard = memo(function QueueCard({ data, index }) {
       showErrorMessage();
     } finally {
       setLoading(false);
+      // Add small delay before allowing new operations
+      setTimeout(() => {
+        operationInProgressRef.current = false;
+      }, 300);
     }
   }, [data.id, data.status]);
   const showDeleteConfirmation = () => {

@@ -17,6 +17,15 @@ import {
   fetchQueueLogic,
 } from '../../../stores/queueStore';
 
+// Debounce function to prevent excessive updates
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
 // Custom hook with extreme performance optimizations
 export function useQueuePage() {
   const [activeIndex, setActiveIndex] = useState(1);
@@ -34,6 +43,8 @@ export function useQueuePage() {
   const subscriptionRef = useRef(null);
   const clinicsRef = useRef(clinics);
   const doctorsRef = useRef(doctors);
+  const fetchInProgressRef = useRef(false);
+  const lastFetchTimeRef = useRef(0);
 
   // Update refs when values change
   useEffect(() => {
@@ -44,13 +55,40 @@ export function useQueuePage() {
     doctorsRef.current = doctors;
   }, [doctors]);
 
+  // Debounced fetch function to prevent excessive API calls
+  const debouncedFetchQueue = useCallback(
+    debounce(async () => {
+      // Skip if a fetch is already in progress or if last fetch was too recent
+      const now = Date.now();
+      if (
+        fetchInProgressRef.current ||
+        now - lastFetchTimeRef.current < 500
+      ) {
+        return;
+      }
+
+      try {
+        fetchInProgressRef.current = true;
+        await fetchQueueLogic();
+        lastFetchTimeRef.current = Date.now();
+      } catch (error) {
+        console.error('Failed to fetch queue:', error);
+      } finally {
+        fetchInProgressRef.current = false;
+      }
+    }, 300),
+    []
+  );
+
   // Optimized subscription setup with cleanup
   const setupSubscription = useCallback(() => {
-    fetchQueueLogic();
+    // Initial fetch
+    debouncedFetchQueue();
 
     // Cleanup previous subscription if exists
     if (subscriptionRef.current) {
       pb.collection('queue').unsubscribe(subscriptionRef.current);
+      subscriptionRef.current = null;
     }
 
     // Subscribe to real-time updates with optimized callback
@@ -62,7 +100,7 @@ export function useQueuePage() {
           data.action === 'create' ||
           data.action === 'delete'
         ) {
-          await fetchQueueLogic();
+          debouncedFetchQueue();
         }
       });
 
@@ -72,11 +110,12 @@ export function useQueuePage() {
         subscriptionRef.current = null;
       }
     };
-  }, []);
+  }, [debouncedFetchQueue]);
 
   // Setup subscription once on mount with proper cleanup
   useEffect(() => {
-    return setupSubscription();
+    const cleanup = setupSubscription();
+    return cleanup;
   }, [setupSubscription]);
 
   // Optimized effect for queue updates
@@ -125,10 +164,14 @@ export function useQueuePage() {
     [selectedDoctor]
   );
 
-  // Optimized refresh handler
+  // Optimized refresh handler with throttling
   const handleRefresh = useCallback(() => {
-    fetchQueueLogic();
-  }, []);
+    const now = Date.now();
+    if (now - lastFetchTimeRef.current < 1000) {
+      return; // Prevent rapid refreshes
+    }
+    debouncedFetchQueue();
+  }, [debouncedFetchQueue]);
 
   // Highly optimized filter change handler
   const handleFilterChange = useCallback(

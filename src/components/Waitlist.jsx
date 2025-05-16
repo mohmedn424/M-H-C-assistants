@@ -4,6 +4,7 @@ import {
   useCallback,
   useMemo,
   useState,
+  useRef,
 } from 'react';
 import { useWaitlist } from '../stores/queueStore';
 import QueueCard from './QueueCard';
@@ -12,10 +13,13 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { FixedSizeList as List } from 'react-window';
 import { useWindowSize } from '../hooks/useWindowSize';
 
-// Simplified animation variants
+// Simplified animation variants with better performance
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.2 },
+  },
 };
 
 export default memo(function Waitlist() {
@@ -25,14 +29,19 @@ export default memo(function Waitlist() {
     window.innerHeight - 200
   );
   const [isReady, setIsReady] = useState(false);
+  const prevWaitlistRef = useRef([]);
+  const listRef = useRef(null);
+  const [listKey, setListKey] = useState(0); // Add key to force re-render when needed
 
   // Memoize the header height calculation
   const updateScrollPadding = useCallback(() => {
     const height =
       document.querySelector('.header-card')?.clientHeight || 0;
 
-    document.querySelector('.column').style.scrollPaddingTop =
-      `${height}px`;
+    const columnElement = document.querySelector('.column');
+    if (columnElement) {
+      columnElement.style.scrollPaddingTop = `${height}px`;
+    }
 
     // Update list height based on available space
     setListHeight(window.innerHeight - 200 - height);
@@ -51,10 +60,32 @@ export default memo(function Waitlist() {
     updateScrollPadding();
   }, [windowSize, updateScrollPadding]);
 
-  // Row renderer for virtualized list
+  // Check if waitlist has changed significantly to reset virtualized list
+  useEffect(() => {
+    const prevIds = new Set(
+      prevWaitlistRef.current.map((item) => item.id)
+    );
+    const currentIds = new Set(waitlist.map((item) => item.id));
+
+    // If items were added or removed (not just reordered)
+    if (prevIds.size !== currentIds.size) {
+      if (listRef.current) {
+        listRef.current.scrollTo(0);
+        // Remove the resetAfterIndex call as it doesn't exist on FixedSizeList
+        // Force re-render of the list by changing key
+        setListKey((prev) => prev + 1);
+      }
+    }
+
+    prevWaitlistRef.current = waitlist;
+  }, [waitlist]);
+
+  // Row renderer for virtualized list with better key handling
   const Row = useCallback(
     ({ index, style }) => {
       const item = waitlist[index];
+      if (!item) return null;
+
       return (
         <div style={{ ...style, height: 'auto' }}>
           <QueueCard key={item.id} data={item} index={index} />
@@ -82,17 +113,19 @@ export default memo(function Waitlist() {
         }}
       >
         <List
+          ref={listRef}
           height={listHeight}
           itemCount={waitlist.length}
           itemSize={120}
           width="100%"
           overscanCount={5}
+          key={listKey} // Add key to force re-render when needed
         >
           {Row}
         </List>
       </div>
     );
-  }, [waitlist, listHeight, Row, isReady]);
+  }, [waitlist, listHeight, Row, isReady, listKey]); // Add listKey to dependencies
 
   return (
     <>
@@ -105,11 +138,7 @@ export default memo(function Waitlist() {
           exit="exit"
           variants={containerVariants}
         >
-          <AnimatePresence>
-            {waitlist.map((item, index) => (
-              <QueueCard key={item.id} data={item} index={index} />
-            ))}
-          </AnimatePresence>
+          {VirtualList}
         </motion.div>
       </div>
     </>
