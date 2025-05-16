@@ -9,7 +9,7 @@ import {
 import { useWaitlist } from '../stores/queueStore';
 import QueueCard from './QueueCard';
 import WaitListCard from './WaitListCard';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FixedSizeList as List } from 'react-window';
 import { useWindowSize } from '../hooks/useWindowSize';
 
@@ -86,9 +86,12 @@ export default memo(function Waitlist() {
       const item = waitlist[index];
       if (!item) return null;
 
+      // Use composite key for better identification
+      const compositeKey = `${item.id}-${item.status}`;
+
       return (
         <div style={{ ...style, height: 'auto' }}>
-          <QueueCard key={item.id} data={item} index={index} />
+          <QueueCard key={compositeKey} data={item} index={index} />
         </div>
       );
     },

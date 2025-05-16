@@ -60,6 +60,7 @@ const QueueCard = memo(function QueueCard({ data, index }) {
   const { setIsModalOpen } = useNewPatientModal();
   const [loading, setLoading] = useState(false);
   const deleteHandler = useFullQueue((state) => state.deleteHandler);
+  const updateHandler = useFullQueue((state) => state.updateHandler);
   const operationInProgressRef = useRef(false);
 
   const handleDelete = useCallback(async () => {
@@ -68,6 +69,11 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     try {
       operationInProgressRef.current = true;
       setLoading(true);
+
+      // Server-first approach - delete from server first
+      await pb.collection('queue').delete(data.id);
+
+      // Then update UI after server confirms deletion
       await deleteHandler(data.id);
     } catch (error) {
       showErrorMessage();
@@ -87,17 +93,26 @@ const QueueCard = memo(function QueueCard({ data, index }) {
       operationInProgressRef.current = true;
       setLoading(true);
 
-      // Optimistic UI update - handled by store
-      await pb.collection('queue').update(
+      // Server-first approach - update server first
+      const newStatus =
+        data.status === QUEUE_STATUSES.WAITLIST
+          ? QUEUE_STATUSES.BOOKING
+          : QUEUE_STATUSES.WAITLIST;
+
+      // Update the server first
+      const updatedServerRecord = await pb.collection('queue').update(
         data.id,
         {
-          status:
-            data.status === QUEUE_STATUSES.WAITLIST
-              ? QUEUE_STATUSES.BOOKING
-              : QUEUE_STATUSES.WAITLIST,
+          status: newStatus,
         },
-        { fields: 'none' }
+        {
+          fields:
+            'id,status,name,type,notes,patient,doctor,clinic,created,updated,expand',
+        }
       );
+
+      // Then update UI with the server response
+      updateHandler(updatedServerRecord);
     } catch (error) {
       showErrorMessage();
     } finally {
@@ -107,7 +122,8 @@ const QueueCard = memo(function QueueCard({ data, index }) {
         operationInProgressRef.current = false;
       }, 300);
     }
-  }, [data.id, data.status]);
+  }, [data, updateHandler]);
+
   const showDeleteConfirmation = () => {
     Dialog.show({
       content: (
@@ -150,10 +166,12 @@ const QueueCard = memo(function QueueCard({ data, index }) {
       ],
     });
   };
+
   const handleActionButtonClick =
     data.name.length > 0
       ? () => setIsModalOpen(true)
       : handleStatusChange;
+
   const getActionButtonIcon = () => {
     if (data.name.length === 0) {
       return data.status === QUEUE_STATUSES.WAITLIST ? (
@@ -164,17 +182,22 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     }
     return <PlusOutlined />;
   };
+
   const getName = () => {
     const nameParts = (
       data.name.length > 0 ? data.name : data.expand?.patient?.name
     ).split(' ');
     return nameParts.slice(0, 3).join(' ');
   };
+
+  // Create a composite key using both id and status
+  const compositeKey = `${data.id}-${data.status}`;
+
   return (
     <>
       <NewPatientModal data={data} />
       <motion.div
-        layoutId={data.id}
+        layoutId={compositeKey}
         className={`queue-card-wrapper ${data.status === QUEUE_STATUSES.BOOKING ? '' : 'reverse'}`}
         variants={cardVariants}
         initial="hidden"

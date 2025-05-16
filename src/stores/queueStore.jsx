@@ -179,32 +179,28 @@ export const useFullQueue = create((set, get) => ({
     }
   },
 
-  // Delete handler with optimistic updates
+  // Delete handler with server-first approach
   deleteHandler: async (id) => {
     try {
       const { fullQueue } = get();
 
-      // Find item index for more efficient removal
+      // Find item index
       const itemIndex = fullQueue.findIndex((item) => item.id === id);
       if (itemIndex === -1) {
         return; // Skip if already deleted
       }
 
-      // Optimistic update - update local state first
+      // Server operation already completed in QueueCard component
+      // Just update the local state now
       const newQueue = fullQueue.slice();
       newQueue.splice(itemIndex, 1); // More efficient than filter
       set({ fullQueue: newQueue, lastUpdateId: id });
 
       // Update filtered lists
       get().updater();
-
-      // Then delete from PocketBase
-      await pb.collection('queue').delete(id);
     } catch (error) {
-      // Only log non-404 errors
-      if (error.status !== 404) {
-        console.error('Failed to delete queue item:', error);
-      }
+      console.error('Delete failed:', error);
+      throw error; // Propagate error to caller
     }
   },
 
@@ -227,112 +223,44 @@ export const useFullQueue = create((set, get) => ({
     get().updater();
   },
 
-  // Update handler with optimistic updates - MODIFIED FOR IMMEDIATE UPDATES
-  updateHandler: (record) => {
-    const { fullQueue, lastUpdateId } = get();
+  // Update handler with improved state management
+  updateHandler: async (updatedRecord) => {
+    try {
+      const { fullQueue } = get();
 
-    // Skip duplicate rapid updates to the same record
-    if (lastUpdateId === record.id) {
-      debounceUpdate(() => {
-        get().updateHandler(record);
-      }, 100);
-      return;
-    }
+      // Find item index
+      const itemIndex = fullQueue.findIndex(
+        (item) => item.id === updatedRecord.id
+      );
 
-    const selectedDoctor =
-      useSelectedDoctor.getState().selectedDoctor;
-    const clinicValue = useClinicValue.getState().clinicValue;
-
-    // Find item index for more efficient updates
-    const itemIndex = fullQueue.findIndex(
-      (item) => item.id === record.id
-    );
-
-    // Update local state efficiently
-    let updatedQueue;
-    if (itemIndex !== -1) {
-      updatedQueue = fullQueue.slice();
-      updatedQueue[itemIndex] = record;
-    } else {
-      updatedQueue = [...fullQueue, record];
-    }
-
-    set({ fullQueue: updatedQueue, lastUpdateId: record.id });
-
-    // Optimize filtering with pre-checks
-    const hasClinicFilter = clinicValue.length > 0;
-    const clinicId = hasClinicFilter ? clinicValue[0] : null;
-
-    // Check if record matches current filters
-    const matchesDoctor =
-      !selectedDoctor ||
-      record?.expand?.doctor?.id === selectedDoctor;
-    const matchesClinic =
-      !hasClinicFilter || record?.expand?.clinic?.id === clinicId;
-
-    if (matchesDoctor && matchesClinic) {
-      // Direct update to the appropriate list for immediate UI feedback
-      if (record.status === QUEUE_STATUS.WAITLIST) {
-        const waitlistState = useWaitlist.getState();
-        const currentWaitlist = waitlistState.waitlist;
-        const existingIndex = currentWaitlist.findIndex(
-          (item) => item.id === record.id
-        );
-
-        if (existingIndex >= 0) {
-          // Update existing item efficiently
-          const newWaitlist = currentWaitlist.slice();
-          newWaitlist[existingIndex] = record;
-          waitlistState.setWaitlist(newWaitlist);
-        } else {
-          // Add to waitlist and remove from bookings if present
-          waitlistState.setWaitlist([...currentWaitlist, record]);
-
-          const bookingsState = useBookings.getState();
-          const currentBookings = bookingsState.bookings;
-          const bookingIndex = currentBookings.findIndex(
-            (item) => item.id === record.id
-          );
-
-          if (bookingIndex >= 0) {
-            const newBookings = currentBookings.slice();
-            newBookings.splice(bookingIndex, 1);
-            bookingsState.setBookings(newBookings);
-          }
-        }
-      } else if (record.status === QUEUE_STATUS.BOOKING) {
-        const bookingsState = useBookings.getState();
-        const currentBookings = bookingsState.bookings;
-        const existingIndex = currentBookings.findIndex(
-          (item) => item.id === record.id
-        );
-
-        if (existingIndex >= 0) {
-          // Update existing item efficiently
-          const newBookings = currentBookings.slice();
-          newBookings[existingIndex] = record;
-          bookingsState.setBookings(newBookings);
-        } else {
-          // Add to bookings and remove from waitlist if present
-          bookingsState.setBookings([...currentBookings, record]);
-
-          const waitlistState = useWaitlist.getState();
-          const currentWaitlist = waitlistState.waitlist;
-          const waitlistIndex = currentWaitlist.findIndex(
-            (item) => item.id === record.id
-          );
-
-          if (waitlistIndex >= 0) {
-            const newWaitlist = currentWaitlist.slice();
-            newWaitlist.splice(waitlistIndex, 1);
-            waitlistState.setWaitlist(newWaitlist);
-          }
-        }
+      if (itemIndex === -1) {
+        return; // Skip if item doesn't exist
       }
-    }
 
-    // Run the updater to ensure consistency
-    get().updater();
+      // Create a new array reference to ensure React detects the change
+      const newQueue = [...fullQueue];
+
+      // Replace the item with the updated record
+      newQueue[itemIndex] = {
+        ...updatedRecord,
+        // Ensure expand data is preserved if not in updated record
+        expand: updatedRecord.expand || fullQueue[itemIndex].expand,
+      };
+
+      // Update state with new array reference
+      set({
+        fullQueue: newQueue,
+        lastUpdateId: updatedRecord.id,
+      });
+
+      // Force update filtered lists immediately
+      await get().updater();
+
+      // Clear cache for this item to ensure proper sorting
+      createDateCache.delete(updatedRecord.id);
+    } catch (error) {
+      console.error('Update failed:', error);
+    }
   },
 }));
 

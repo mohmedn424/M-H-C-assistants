@@ -69,9 +69,17 @@ export default memo(function Bookings() {
                 لا يوجد حجوزات
               </motion.div>
             ) : (
-              bookings.map((item, index) => (
-                <QueueCard key={item.id} data={item} index={index} />
-              ))
+              bookings.map((item, index) => {
+                // Create composite key using both id and status
+                const compositeKey = `${item.id}-${item.status}`;
+                return (
+                  <QueueCard
+                    key={compositeKey}
+                    data={item}
+                    index={index}
+                  />
+                );
+              })
             )}
           </AnimatePresence>
         </motion.div>
