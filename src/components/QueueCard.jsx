@@ -178,13 +178,10 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     });
   };
 
-  const handleActionButtonClick = useCallback(() => {
-    if (data.name.length > 0) {
-      setIsModalOpen(true);
-    } else {
-      handleStatusChange();
-    }
-  }, [data.name.length, setIsModalOpen, handleStatusChange]);
+  const handleActionButtonClick =
+    data.name.length > 0
+      ? () => setIsModalOpen(true)
+      : handleStatusChange;
 
   const getActionButtonIcon = () => {
     if (data.name.length === 0) {

@@ -1,10 +1,4 @@
-import {
-  memo,
-  useRef,
-  useEffect,
-  useState,
-  useCallback,
-} from 'react';
+import { memo, useRef, useEffect, useState } from 'react';
 import { useBookings } from '../stores/queueStore';
 import BookingsCard from './BookingsCard';
 import QueueCard from './QueueCard';
@@ -58,65 +52,10 @@ export default memo(function Bookings() {
     prevBookingsRef.current = bookings;
   }, [bookings]);
 
-  // Add a function to handle scroll with haptic feedback
-  const handleScroll = useCallback(() => {
-    // Optional subtle feedback on scroll
-    if (navigator.vibrate && Math.random() < 0.05) {
-      // Only vibrate occasionally during scroll
-      navigator.vibrate(5); // Very subtle vibration
-    }
-  }, []);
-
-  // Add scroll event listener
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.addEventListener('scroll', handleScroll, {
-        passive: true,
-      });
-    }
-
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.removeEventListener(
-          'scroll',
-          handleScroll
-        );
-      }
-    };
-  }, [handleScroll]);
-
-  // Add haptic feedback when bookings change
-  useEffect(() => {
-    const prevIds = new Set(
-      prevBookingsRef.current.map((item) => item.id)
-    );
-    const currentIds = new Set(bookings.map((item) => item.id));
-
-    // Check if items were added or removed (not just updated)
-    const itemsAdded = bookings.some((item) => !prevIds.has(item.id));
-    const itemsRemoved = prevBookingsRef.current.some(
-      (item) => !currentIds.has(item.id)
-    );
-
-    // If items were added or removed, provide haptic feedback
-    if ((itemsAdded || itemsRemoved) && navigator.vibrate) {
-      navigator.vibrate(itemsAdded ? 40 : 60); // Different feedback for add vs remove
-    }
-  }, [bookings]);
-
   return (
     <>
       <BookingsCard />
-      <div
-        className="column"
-        ref={containerRef}
-        onTouchStart={() => {
-          // Optional subtle feedback on touch
-          if (navigator.vibrate) {
-            navigator.vibrate(10); // Very subtle vibration
-          }
-        }}
-      >
+      <div className="column" ref={containerRef}>
         <motion.div
           className="cards-wrapper"
           initial="hidden"

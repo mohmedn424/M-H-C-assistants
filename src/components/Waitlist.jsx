@@ -106,31 +106,6 @@ export default memo(function Waitlist() {
   }, [waitlist]);
 
   // Row renderer for virtualized list with better key handling
-  // Add a function to handle scroll with haptic feedback
-  const handleScroll = useCallback(() => {
-    // Optional subtle feedback on scroll
-    if (navigator.vibrate && Math.random() < 0.05) {
-      // Only vibrate occasionally during scroll
-      navigator.vibrate(5); // Very subtle vibration
-    }
-  }, []);
-
-  // Add scroll event listener
-  useEffect(() => {
-    const columnElement = document.querySelector('.column');
-    if (columnElement) {
-      columnElement.addEventListener('scroll', handleScroll, {
-        passive: true,
-      });
-    }
-
-    return () => {
-      if (columnElement) {
-        columnElement.removeEventListener('scroll', handleScroll);
-      }
-    };
-  }, [handleScroll]);
-
   const Row = useCallback(
     ({ index, style }) => {
       const item = waitlist[index];
@@ -140,15 +115,7 @@ export default memo(function Waitlist() {
       const compositeKey = `${item.id}-${item.status}`;
 
       return (
-        <div
-          style={{ ...style, height: 'auto' }}
-          onTouchStart={() => {
-            // Optional subtle feedback on touch
-            if (navigator.vibrate) {
-              navigator.vibrate(10); // Very subtle vibration
-            }
-          }}
-        >
+        <div style={{ ...style, height: 'auto' }}>
           <QueueCard key={compositeKey} data={item} index={index} />
         </div>
       );
@@ -167,7 +134,6 @@ export default memo(function Waitlist() {
         style={{
           opacity: isReady ? 1 : 0,
           transition: 'opacity 0.2s ease',
-          willChange: 'opacity', // Add will-change for better performance
         }}
       >
         <List
@@ -177,14 +143,13 @@ export default memo(function Waitlist() {
           itemSize={120}
           width="100%"
           overscanCount={5}
-          key={listKey}
-          useIsScrolling={true} // Add this to optimize rendering during scrolling
+          key={listKey} // Add key to force re-render when needed
         >
           {Row}
         </List>
       </div>
     );
-  }, [waitlist, listHeight, Row, isReady, listKey]);
+  }, [waitlist, listHeight, Row, isReady, listKey]); // Add listKey to dependencies
 
   return (
     <>
