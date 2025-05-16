@@ -191,6 +191,7 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     open: true,
     // Optimize HMR for faster updates
+    host: '0.0.0.0',
     hmr: {
       overlay: true,
     },
@@ -204,6 +205,7 @@ export default defineConfig(({ mode }) => ({
     port: 4173,
     strictPort: true,
     open: true,
+    host: '0.0.0.0',
   },
   // Optimize asset handling
   optimizeDeps: {

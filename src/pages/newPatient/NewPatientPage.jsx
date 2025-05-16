@@ -22,7 +22,7 @@ import { Helmet } from 'react-helmet';
 const ARABIC_REPLACEMENTS = {
   SPACES: /\s+/g,
   YA: /ى/g,
-  ALEF: /أ|إ/g,
+  ALEF: /أ|إ|آ|ء/g,
   TA_MARBUTA: 'ة',
   ABD_SPACE: 'عبد ',
 };
@@ -66,6 +66,14 @@ export default function NewpatientPage({
       .replace(ARABIC_REPLACEMENTS.ABD_SPACE, 'عبد');
   }, []);
 
+  // Convert Arabic numerals to English numerals
+  const normalizeNumbers = useCallback((value) => {
+    if (!value) return value;
+    // Convert Arabic/Persian digits to English digits
+    return value
+      .toString()
+      .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+  }, []);
   // Handle form submission
   const formFinishHandler = useCallback(
     async (values) => {
@@ -277,21 +285,51 @@ export default function NewpatientPage({
             />
           </Form.Item>
 
-          <Form.Item label="الوزن" name="weight">
+          <Form.Item
+            label="الوزن"
+            name="weight"
+            normalize={normalizeNumbers}
+          >
             <InputNumber
               onFocus={handleInputFocus}
               controls={false}
               addonAfter="كيلوجرام"
               style={{ width: '100%' }}
+              stringMode={true}
+              parser={(value) => {
+                // Convert Arabic numerals to English numerals
+                return value
+                  ? value
+                      .toString()
+                      .replace(/[٠-٩]/g, (d) =>
+                        '٠١٢٣٤٥٦٧٨٩'.indexOf(d)
+                      )
+                  : value;
+              }}
             />
           </Form.Item>
 
-          <Form.Item label="الطول" name="height">
+          <Form.Item
+            label="الطول"
+            name="height"
+            normalize={normalizeNumbers}
+          >
             <InputNumber
               onFocus={handleInputFocus}
               controls={false}
               addonAfter="سنتيميتر"
               style={{ width: '100%' }}
+              stringMode={true}
+              parser={(value) => {
+                // Convert Arabic numerals to English numerals
+                return value
+                  ? value
+                      .toString()
+                      .replace(/[٠-٩]/g, (d) =>
+                        '٠١٢٣٤٥٦٧٨٩'.indexOf(d)
+                      )
+                  : value;
+              }}
             />
           </Form.Item>
 
@@ -299,6 +337,7 @@ export default function NewpatientPage({
             label="رقم الموبايل"
             name="phone_number"
             rules={formRules.phone}
+            normalize={normalizeNumbers}
           >
             <Input
               onFocus={handleInputFocus}
@@ -315,6 +354,7 @@ export default function NewpatientPage({
             label="الرقم القومي"
             name="NID"
             rules={formRules.nid}
+            normalize={normalizeNumbers}
           >
             <Input onFocus={handleInputFocus} />
           </Form.Item>

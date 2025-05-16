@@ -12,10 +12,11 @@ export const ClinicFilterPopup = ({
     <Popup
       visible={showFilter}
       onMaskClick={() => setShowFilter(false)}
-      bodyStyle={{ height: '40vh' }}
+      bodyStyle={{ maxHeight: '80dvh', overflow: 'auto' }}
     >
       <div className="filter-popup">
         <h3>اختر العيادة</h3>
+
         <Radio.Group
           value={clinicValue[0] || 'all'}
           onChange={handleFilterChange}

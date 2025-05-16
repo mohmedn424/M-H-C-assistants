@@ -12,24 +12,30 @@ export const DoctorFilterPopup = ({
     <Popup
       visible={showDoctorFilter}
       onMaskClick={() => setShowDoctorFilter(false)}
-      bodyStyle={{ height: '40vh' }}
+      bodyStyle={{
+        maxHeight: '80dvh',
+        overflow: 'auto',
+        // backgroundColor: 'red',
+      }}
     >
       <div className="filter-popup">
         <h3>اختر الطبيب</h3>
-        <Radio.Group
-          value={selectedDoctor}
-          onChange={handleDoctorFilterChange}
-        >
-          {doctors.map((doctor) => (
-            <Radio
-              key={doctor.id}
-              value={doctor.id}
-              className="clinic-radio"
-            >
-              {doctor.name_ar || doctor.name}
-            </Radio>
-          ))}
-        </Radio.Group>
+        <div style={{ paddingTop: '5px' }}>
+          <Radio.Group
+            value={selectedDoctor}
+            onChange={handleDoctorFilterChange}
+          >
+            {doctors.map((doctor) => (
+              <Radio
+                key={doctor.id}
+                value={doctor.id}
+                className="clinic-radio"
+              >
+                {doctor.name_ar || doctor.name}
+              </Radio>
+            ))}
+          </Radio.Group>
+        </div>
       </div>
     </Popup>
   );

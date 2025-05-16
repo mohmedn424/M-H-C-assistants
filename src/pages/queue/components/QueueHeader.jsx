@@ -47,7 +47,7 @@ const QueueHeader = memo(
             {clinicName}
           </Button>
 
-          <Button
+          {/* <Button
             shape="circle"
             size="large"
             type="primary"
@@ -56,7 +56,7 @@ const QueueHeader = memo(
             style={{ padding: '4px 8px' }}
           >
             <RedoOutline />
-          </Button>
+          </Button> */}
         </div>
       </div>
     );
