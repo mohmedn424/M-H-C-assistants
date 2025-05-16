@@ -117,7 +117,8 @@ const QueueCard = memo(function QueueCard({ data, index }) {
         },
         {
           fields:
-            'id,status,name,type,notes,patient,doctor,clinic,created,updated,expand',
+            'id,status,name,type,notes,patient,doctor,clinic,created,updated,expand.patient.name,expand.patient.address',
+          expand: 'patient',
         }
       );
 
@@ -194,9 +195,13 @@ const QueueCard = memo(function QueueCard({ data, index }) {
   };
 
   const getName = () => {
-    const nameParts = (
-      data.name.length > 0 ? data.name : data.expand?.patient?.name
-    ).split(' ');
+    console.log(data); // Check if either data.name or data.expand?.patient?.name exists before splitting
+    const nameString =
+      data.name?.length > 0
+        ? data.name
+        : data.expand?.patient?.name || '';
+
+    const nameParts = nameString.split(' ');
     return nameParts.slice(0, 3).join(' ');
   };
 
