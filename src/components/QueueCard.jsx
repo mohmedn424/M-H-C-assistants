@@ -80,11 +80,6 @@ const QueueCard = memo(function QueueCard({ data, index }) {
       operationInProgressRef.current = true;
       setLoading(true);
 
-      // Add haptic feedback if supported
-      if (navigator.vibrate) {
-        navigator.vibrate(100); // Short vibration for 100ms
-      }
-
       // Server-first approach - delete from server first
       await pb.collection('queue').delete(data.id);
 
@@ -107,11 +102,6 @@ const QueueCard = memo(function QueueCard({ data, index }) {
     try {
       operationInProgressRef.current = true;
       setLoading(true);
-
-      // Add haptic feedback
-      if (navigator.vibrate) {
-        navigator.vibrate(50); // Shorter vibration for status change
-      }
 
       // Server-first approach - update server first
       const newStatus =
@@ -146,11 +136,6 @@ const QueueCard = memo(function QueueCard({ data, index }) {
   }, [data, updateHandler]);
 
   const showDeleteConfirmation = () => {
-    // Add haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate([30, 50, 30]); // Pattern for delete confirmation
-    }
-
     Dialog.show({
       content: (
         <h4 style={{ textAlign: 'center', direction: 'rtl' }}>
@@ -194,11 +179,6 @@ const QueueCard = memo(function QueueCard({ data, index }) {
   };
 
   const handleActionButtonClick = useCallback(() => {
-    // Add haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate(30); // Very short vibration for button press
-    }
-
     if (data.name.length > 0) {
       setIsModalOpen(true);
     } else {
