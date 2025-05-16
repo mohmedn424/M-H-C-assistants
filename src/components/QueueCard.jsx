@@ -16,24 +16,34 @@ import { useFullQueue } from '../stores/queueStore';
 const QUEUE_STATUSES = { BOOKING: 'booking', WAITLIST: 'waitlist' };
 const PATIENT_TYPES = { NEW: 'new', CONSULTATION: 'follow' };
 
-// Animation variants for card items
+// Animation variants for card items - more subtle transitions
 const cardVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  hidden: { opacity: 0, y: 10, scale: 0.98 },
   visible: (index) => ({
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
       type: 'spring',
-      stiffness: 200,
-      damping: 10,
-      delay: index * 0.05, // Reduced delay for faster rendering
+      stiffness: 300,
+      damping: 20,
+      mass: 0.8,
+      delay: Math.min(index * 0.03, 0.15), // Cap delay for faster rendering
     },
   }),
   exit: {
     opacity: 0,
-    scale: 0.9,
-    transition: { duration: 0.15 }, // Faster exit animation
+    scale: 0.95,
+    transition: { duration: 0.1 }, // Faster exit animation
+  },
+  update: {
+    scale: [1, 1.02, 1],
+    backgroundColor: [
+      'rgba(255,255,255,0)',
+      'rgba(255,255,255,0.2)',
+      'rgba(255,255,255,0)',
+    ],
+    transition: { duration: 0.3 },
   },
 };
 
@@ -193,6 +203,7 @@ const QueueCard = memo(function QueueCard({ data, index }) {
   // Create a composite key using both id and status
   const compositeKey = `${data.id}-${data.status}`;
 
+  // In the return statement, add animate prop to detect updates
   return (
     <>
       <NewPatientModal data={data} />
@@ -201,9 +212,10 @@ const QueueCard = memo(function QueueCard({ data, index }) {
         className={`queue-card-wrapper ${data.status === QUEUE_STATUSES.BOOKING ? '' : 'reverse'}`}
         variants={cardVariants}
         initial="hidden"
-        animate="visible"
+        animate={loading ? 'update' : 'visible'}
         exit="exit"
         custom={index}
+        layout
       >
         <div className="left">
           <h2

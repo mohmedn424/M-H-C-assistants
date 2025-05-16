@@ -224,42 +224,90 @@ export const useFullQueue = create((set, get) => ({
   },
 
   // Update handler with improved state management
+  // Optimized update handler with individual item updates
   updateHandler: async (updatedRecord) => {
     try {
       const { fullQueue } = get();
 
-      // Find item index
+      // Find the item in the queue
       const itemIndex = fullQueue.findIndex(
         (item) => item.id === updatedRecord.id
       );
+      if (itemIndex === -1) return; // Item not found
 
-      if (itemIndex === -1) {
-        return; // Skip if item doesn't exist
-      }
-
-      // Create a new array reference to ensure React detects the change
+      // Create a new array with the updated item
       const newQueue = [...fullQueue];
 
-      // Replace the item with the updated record
-      newQueue[itemIndex] = {
-        ...updatedRecord,
-        // Ensure expand data is preserved if not in updated record
-        expand: updatedRecord.expand || fullQueue[itemIndex].expand,
-      };
+      // Store previous status for comparison
+      const previousStatus = fullQueue[itemIndex].status;
+      const newStatus = updatedRecord.status;
 
-      // Update state with new array reference
-      set({
-        fullQueue: newQueue,
-        lastUpdateId: updatedRecord.id,
-      });
+      // Update the item in place
+      newQueue[itemIndex] = updatedRecord;
 
-      // Force update filtered lists immediately
-      await get().updater();
+      // Set the full queue with the updated item
+      set({ fullQueue: newQueue, lastUpdateId: updatedRecord.id });
 
-      // Clear cache for this item to ensure proper sorting
-      createDateCache.delete(updatedRecord.id);
+      // If status changed, handle the move between lists
+      if (previousStatus !== newStatus) {
+        // Get current lists
+        const currentWaitlist = useWaitlist.getState().waitlist;
+        const currentBookings = useBookings.getState().bookings;
+
+        // Handle status change from waitlist to booking
+        if (
+          previousStatus === QUEUE_STATUS.WAITLIST &&
+          newStatus === QUEUE_STATUS.BOOKING
+        ) {
+          // Remove from waitlist
+          const newWaitlist = currentWaitlist.filter(
+            (item) => item.id !== updatedRecord.id
+          );
+          useWaitlist.getState().setWaitlist(newWaitlist);
+
+          // Add to bookings and sort
+          const newBookings = [
+            ...currentBookings,
+            updatedRecord,
+          ].sort(sortByCreationDate);
+          useBookings.getState().setBookings(newBookings);
+        }
+        // Handle status change from booking to waitlist
+        else if (
+          previousStatus === QUEUE_STATUS.BOOKING &&
+          newStatus === QUEUE_STATUS.WAITLIST
+        ) {
+          // Remove from bookings
+          const newBookings = currentBookings.filter(
+            (item) => item.id !== updatedRecord.id
+          );
+          useBookings.getState().setBookings(newBookings);
+
+          // Add to waitlist and sort
+          const newWaitlist = [
+            ...currentWaitlist,
+            updatedRecord,
+          ].sort(sortByCreationDate);
+          useWaitlist.getState().setWaitlist(newWaitlist);
+        }
+      } else {
+        // Just update the item in its current list
+        if (newStatus === QUEUE_STATUS.WAITLIST) {
+          const currentWaitlist = useWaitlist.getState().waitlist;
+          const newWaitlist = currentWaitlist.map((item) =>
+            item.id === updatedRecord.id ? updatedRecord : item
+          );
+          useWaitlist.getState().setWaitlist(newWaitlist);
+        } else if (newStatus === QUEUE_STATUS.BOOKING) {
+          const currentBookings = useBookings.getState().bookings;
+          const newBookings = currentBookings.map((item) =>
+            item.id === updatedRecord.id ? updatedRecord : item
+          );
+          useBookings.getState().setBookings(newBookings);
+        }
+      }
     } catch (error) {
-      console.error('Update failed:', error);
+      console.error('Update handler failed:', error);
     }
   },
 }));

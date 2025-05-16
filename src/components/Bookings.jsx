@@ -33,8 +33,14 @@ export default memo(function Bookings() {
     );
     const currentIds = new Set(bookings.map((item) => item.id));
 
-    // If items were added or removed (not just reordered)
-    if (prevIds.size !== currentIds.size) {
+    // Check if items were added or removed (not just updated)
+    const itemsAdded = bookings.some((item) => !prevIds.has(item.id));
+    const itemsRemoved = prevBookingsRef.current.some(
+      (item) => !currentIds.has(item.id)
+    );
+
+    // If items were added or removed (not just updated)
+    if (itemsAdded || itemsRemoved) {
       if (containerRef.current) {
         containerRef.current.scrollTop = 0;
       }

@@ -22,6 +22,30 @@ const containerVariants = {
   },
 };
 
+// Add a new effect to handle individual item updates without full list resets
+useEffect(() => {
+  // Only reset the list when items are added or removed, not when they're updated
+  const prevIds = new Set(
+    prevWaitlistRef.current.map((item) => item.id)
+  );
+  const currentIds = new Set(waitlist.map((item) => item.id));
+
+  // Check if items were added or removed (not just updated)
+  const itemsAdded = waitlist.some((item) => !prevIds.has(item.id));
+  const itemsRemoved = prevWaitlistRef.current.some(
+    (item) => !currentIds.has(item.id)
+  );
+
+  if (itemsAdded || itemsRemoved) {
+    if (listRef.current) {
+      listRef.current.scrollTo(0);
+      setListKey((prev) => prev + 1);
+    }
+  }
+
+  prevWaitlistRef.current = waitlist;
+}, [waitlist]);
+
 export default memo(function Waitlist() {
   const { waitlist } = useWaitlist();
   const windowSize = useWindowSize();
